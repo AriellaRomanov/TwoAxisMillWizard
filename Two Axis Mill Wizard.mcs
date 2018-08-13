@@ -1,0 +1,149 @@
+--Touch Button script
+inst = mc.mcGetInstance()
+
+MillWizard = {}
+
+function MillWizard.Log(msg)
+	mc.mcCntlLog(inst, tostring(msg), "Mill - 2 Axis.mcs", 7)
+end
+
+function MillWizard.CreateFrame()
+	local is_ok, err = pcall(MillWizard._CreateFrame)
+	if not is_ok then
+		MillWizard.Log(string.format("Error starting 2 Axis Mill Wizard: %s", err))
+	end
+end
+
+function MillWizard._CreateFrame()
+	local UI = {}
+
+	local parent = mcLuaPanelParent
+	if parent == nil then parent = wx.NULL end
+	
+	-- create frame
+	UI.frame = wx.wxFrame (parent, wx.wxID_ANY, "2 Axis Mill Wizard", wx.wxDefaultPosition, wx.wxSize( 500,300 ), wx.wxDEFAULT_FRAME_STYLE + wx.wxSTAY_ON_TOP + wx.wxTAB_TRAVERSAL )
+	UI.frame:SetSizeHints( wx.wxDefaultSize, wx.wxDefaultSize )
+	UI.frame:SetFont( wx.wxFont( 12, 70, 90, 90, false, "Calibri" ) )
+	
+	UI.main_sizer = wx.wxBoxSizer( wx.wxVERTICAL )
+	
+	UI.dro_sizer = wx.wxStaticBoxSizer( wx.wxStaticBox( UI.frame, wx.wxID_ANY, "Current Positions" ), wx.wxHORIZONTAL )
+	
+	UI.xLabel = wx.wxStaticText( UI.frame, wx.wxID_ANY, "X:", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.xLabel:Wrap( -1 )
+	UI.dro_sizer:Add( UI.xLabel, 0, wx.wxALIGN_CENTER + wx.wxALL, 5 )
+	
+	UI.xDRO = wx.wxTextCtrl( UI.frame, wx.wxID_ANY, "", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
+	UI.xDRO:Enable( false )
+	
+	UI.dro_sizer:Add( UI.xDRO, 1, wx.wxALIGN_CENTER + wx.wxALL, 5 )
+	
+	UI.yLabel = wx.wxStaticText( UI.frame, wx.wxID_ANY, "Y:", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.yLabel:Wrap( -1 )
+	UI.dro_sizer:Add( UI.yLabel, 0, wx.wxALIGN_CENTER + wx.wxALL, 5 )
+	
+	UI.yDRO = wx.wxTextCtrl( UI.frame, wx.wxID_ANY, "", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
+	UI.yDRO:Enable( false )
+	
+	UI.dro_sizer:Add( UI.yDRO, 1, wx.wxALIGN_CENTER + wx.wxALL, 5 )
+	
+	UI.zLabel = wx.wxStaticText( UI.frame, wx.wxID_ANY, "Z:", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.zLabel:Wrap( -1 )
+	UI.dro_sizer:Add( UI.zLabel, 0, wx.wxALIGN_CENTER + wx.wxALL, 5 )
+	
+	UI.zDRO = wx.wxTextCtrl( UI.frame, wx.wxID_ANY, "", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
+	UI.zDRO:Enable( false )
+	
+	UI.dro_sizer:Add( UI.zDRO, 1, wx.wxALIGN_CENTER + wx.wxALL, 5 )
+	
+	
+	UI.main_sizer:Add( UI.dro_sizer, 0, wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.operation_book = wx.wxListbook( UI.frame, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxLB_DEFAULT )
+	UI.surfacePanel = wx.wxPanel( UI.operation_book, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTAB_TRAVERSAL )
+	UI.surfacing_sizer = wx.wxBoxSizer( wx.wxVERTICAL )
+	
+	UI.m_staticText7 = wx.wxStaticText( UI.surfacePanel, wx.wxID_ANY, "surfacing", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.m_staticText7:Wrap( -1 )
+	UI.surfacing_sizer:Add( UI.m_staticText7, 0, wx.wxALL, 5 )
+	
+	
+	UI.surfacePanel:SetSizer( UI.surfacing_sizer )
+	UI.surfacePanel:Layout()
+	UI.surfacing_sizer:Fit( UI.surfacePanel )
+	UI.operation_book:AddPage( UI.surfacePanel, "Surfacing", false )
+	
+	
+	
+	UI.m_panel2 = wx.wxPanel( UI.operation_book, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTAB_TRAVERSAL )
+	UI.fgSizer1 = wx.wxFlexGridSizer( 0, 3, 0, 0 )
+	UI.fgSizer1:SetFlexibleDirection( wx.wxBOTH )
+	UI.fgSizer1:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	
+
+	UI.m_panel2:SetSizer( UI.fgSizer1 )
+	UI.m_panel2:Layout()
+	UI.fgSizer1:Fit( UI.m_panel2 )
+	UI.operation_book:AddPage( UI.m_panel2, "a page", false )
+	
+	UI.main_sizer:Add( UI.operation_book, 1, wx.wxEXPAND  + wx. wxALL, 5 )
+	
+	
+	UI.frame:SetSizer( UI.main_sizer )
+	UI.frame:Fit()
+	UI.frame:Layout()
+	UI.timer = wx.wxTimer(UI.frame, wx.wxID_ANY)
+	
+	UI.timer:Start( 50 )
+
+	
+	-- Connect Events
+	
+	UI.frame:Connect( wx.wxEVT_CLOSE_WINDOW, function(event)
+	--implements OnCloseEvent
+		UI.timer:Stop()
+		UI.timer = nil
+	event:Skip()
+	end )
+	
+	UI.frame:Connect( wx.wxEVT_TIMER, function(event)
+	--implements OnTimerEvent
+		if UI.timer ~= nil then UI.timer:Stop() end
+	
+		local xpos = mc.mcAxisGetPos(inst, mc.X_AXIS)
+		if UI.last_xpos ~= xpos then
+			UI.xDRO:SetValue(string.format("%0.6f", xpos))
+			UI.last_xpos = xpos
+		end
+		
+		local ypos = mc.mcAxisGetPos(inst, mc.Y_AXIS)
+		if UI.last_ypos ~= ypos then
+			UI.yDRO:SetValue(string.format("%0.6f", ypos))
+			UI.last_ypos = ypos
+		end
+		
+		local zpos = mc.mcAxisGetPos(inst, mc.Z_AXIS)
+		if UI.last_zpos ~= zpos then
+			UI.zDRO:SetValue(string.format("%0.6f", zpos))
+			UI.last_zpos = zpos
+		end
+		
+		if UI.timer ~= nil then UI.timer:Start() end
+		
+		event:Skip()
+	end )
+	
+	local size = UI.frame:GetSize()
+	local width = size:GetWidth()
+	local height = size:GetHeight()
+	if width < 600 then width = 600 end
+	if height < 400 then height = 400 end
+	UI.frame:SetSize(wx.wxSize(width, height))
+	
+	UI.frame:Centre( wx.wxBOTH )
+	UI.frame:Show()
+end
+
+MillWizard.CreateFrame()
+
+return MillWizard
