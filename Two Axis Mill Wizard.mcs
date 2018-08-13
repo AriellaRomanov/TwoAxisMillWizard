@@ -1,10 +1,8 @@
---Touch Button script
-inst = mc.mcGetInstance()
-
 MillWizard = {}
+MillWizard.inst = mc.mcGetInstance("Two Axis Mill Wizard")
 
 function MillWizard.Log(msg)
-	mc.mcCntlLog(inst, tostring(msg), "Mill - 2 Axis.mcs", 7)
+	mc.mcCntlLog(MillWizard.inst, tostring(msg), "Two Axis Mill Wizard.mcs", 5)
 end
 
 function MillWizard.CreateFrame()
@@ -21,76 +19,31 @@ function MillWizard._CreateFrame()
 	if parent == nil then parent = wx.NULL end
 	
 	-- create frame
-	UI.frame = wx.wxFrame (parent, wx.wxID_ANY, "2 Axis Mill Wizard", wx.wxDefaultPosition, wx.wxSize( 500,300 ), wx.wxDEFAULT_FRAME_STYLE + wx.wxSTAY_ON_TOP + wx.wxTAB_TRAVERSAL )
+	UI.frame = wx.wxFrame( parent, wx.wxID_ANY, "Two Axis Mill Wizard", wx.wxDefaultPosition, wx.wxSize( 600, 400 ), wx.wxDEFAULT_FRAME_STYLE + wx.wxSTAY_ON_TOP + wx.wxTAB_TRAVERSAL )
 	UI.frame:SetSizeHints( wx.wxDefaultSize, wx.wxDefaultSize )
 	UI.frame:SetFont( wx.wxFont( 12, 70, 90, 90, false, "Calibri" ) )
 	
+	local licensed = MillWizard.IsLicensed()
+	if not licensed then
+		local title = UI.frame:GetTitle()
+		UI.frame:SetTitle(string.format("%s %s", title, MillWizard.GetUnlicensedString()))
+	end
+	
 	UI.main_sizer = wx.wxBoxSizer( wx.wxVERTICAL )
 	
-	UI.dro_sizer = wx.wxStaticBoxSizer( wx.wxStaticBox( UI.frame, wx.wxID_ANY, "Current Positions" ), wx.wxHORIZONTAL )
+	UI.scroll_panel = wx.wxScrolledWindow( UI.frame, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxHSCROLL + wx.wxVSCROLL )
+	UI.scroll_panel:SetScrollRate( 5, 5 )
+	UI.panel_sizer = wx.wxBoxSizer( wx.wxVERTICAL )
 	
-	UI.xLabel = wx.wxStaticText( UI.frame, wx.wxID_ANY, "X:", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.xLabel:Wrap( -1 )
-	UI.dro_sizer:Add( UI.xLabel, 0, wx.wxALIGN_CENTER + wx.wxALL, 5 )
+	UI = MillWizard.CreateSurfacingPanel(UI)
 	
-	UI.xDRO = wx.wxTextCtrl( UI.frame, wx.wxID_ANY, "", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
-	UI.xDRO:Enable( false )
-	
-	UI.dro_sizer:Add( UI.xDRO, 1, wx.wxALIGN_CENTER + wx.wxALL, 5 )
-	
-	UI.yLabel = wx.wxStaticText( UI.frame, wx.wxID_ANY, "Y:", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.yLabel:Wrap( -1 )
-	UI.dro_sizer:Add( UI.yLabel, 0, wx.wxALIGN_CENTER + wx.wxALL, 5 )
-	
-	UI.yDRO = wx.wxTextCtrl( UI.frame, wx.wxID_ANY, "", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
-	UI.yDRO:Enable( false )
-	
-	UI.dro_sizer:Add( UI.yDRO, 1, wx.wxALIGN_CENTER + wx.wxALL, 5 )
-	
-	UI.zLabel = wx.wxStaticText( UI.frame, wx.wxID_ANY, "Z:", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.zLabel:Wrap( -1 )
-	UI.dro_sizer:Add( UI.zLabel, 0, wx.wxALIGN_CENTER + wx.wxALL, 5 )
-	
-	UI.zDRO = wx.wxTextCtrl( UI.frame, wx.wxID_ANY, "", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
-	UI.zDRO:Enable( false )
-	
-	UI.dro_sizer:Add( UI.zDRO, 1, wx.wxALIGN_CENTER + wx.wxALL, 5 )
-	
-	
-	UI.main_sizer:Add( UI.dro_sizer, 0, wx.wxALL + wx.wxEXPAND, 5 )
-	
-	UI.operation_book = wx.wxListbook( UI.frame, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxLB_DEFAULT )
-	UI.surfacePanel = wx.wxPanel( UI.operation_book, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTAB_TRAVERSAL )
-	UI.surfacing_sizer = wx.wxBoxSizer( wx.wxVERTICAL )
-	
-	UI.m_staticText7 = wx.wxStaticText( UI.surfacePanel, wx.wxID_ANY, "surfacing", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.m_staticText7:Wrap( -1 )
-	UI.surfacing_sizer:Add( UI.m_staticText7, 0, wx.wxALL, 5 )
-	
-	
-	UI.surfacePanel:SetSizer( UI.surfacing_sizer )
-	UI.surfacePanel:Layout()
-	UI.surfacing_sizer:Fit( UI.surfacePanel )
-	UI.operation_book:AddPage( UI.surfacePanel, "Surfacing", false )
-	
-	
-	
-	UI.m_panel2 = wx.wxPanel( UI.operation_book, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTAB_TRAVERSAL )
-	UI.fgSizer1 = wx.wxFlexGridSizer( 0, 3, 0, 0 )
-	UI.fgSizer1:SetFlexibleDirection( wx.wxBOTH )
-	UI.fgSizer1:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
-	
-
-	UI.m_panel2:SetSizer( UI.fgSizer1 )
-	UI.m_panel2:Layout()
-	UI.fgSizer1:Fit( UI.m_panel2 )
-	UI.operation_book:AddPage( UI.m_panel2, "a page", false )
-	
-	UI.main_sizer:Add( UI.operation_book, 1, wx.wxEXPAND  + wx. wxALL, 5 )
+	UI.scroll_panel:SetSizer( UI.panel_sizer )
+	UI.scroll_panel:Layout()
+	UI.panel_sizer:Fit( UI.scroll_panel )
+	UI.main_sizer:Add( UI.scroll_panel, 1, wx.wxEXPAND  + wx. wxALL, 0 )
 	
 	
 	UI.frame:SetSizer( UI.main_sizer )
-	UI.frame:Fit()
 	UI.frame:Layout()
 	UI.timer = wx.wxTimer(UI.frame, wx.wxID_ANY)
 	
@@ -110,23 +63,7 @@ function MillWizard._CreateFrame()
 	--implements OnTimerEvent
 		if UI.timer ~= nil then UI.timer:Stop() end
 	
-		local xpos = mc.mcAxisGetPos(inst, mc.X_AXIS)
-		if UI.last_xpos ~= xpos then
-			UI.xDRO:SetValue(string.format("%0.6f", xpos))
-			UI.last_xpos = xpos
-		end
 		
-		local ypos = mc.mcAxisGetPos(inst, mc.Y_AXIS)
-		if UI.last_ypos ~= ypos then
-			UI.yDRO:SetValue(string.format("%0.6f", ypos))
-			UI.last_ypos = ypos
-		end
-		
-		local zpos = mc.mcAxisGetPos(inst, mc.Z_AXIS)
-		if UI.last_zpos ~= zpos then
-			UI.zDRO:SetValue(string.format("%0.6f", zpos))
-			UI.last_zpos = zpos
-		end
 		
 		if UI.timer ~= nil then UI.timer:Start() end
 		
@@ -138,10 +75,125 @@ function MillWizard._CreateFrame()
 	local height = size:GetHeight()
 	if width < 600 then width = 600 end
 	if height < 400 then height = 400 end
-	UI.frame:SetSize(wx.wxSize(width, height))
+	UI.frame:SetMinSize(wx.wxSize(width, height))
 	
 	UI.frame:Centre( wx.wxBOTH )
 	UI.frame:Show()
+end
+
+function MillWizard.CreateSurfacingPanel(UI)
+	local is_ok, err = pcall(MillWizard._CreateSurfacingPanel, UI)
+	if not is_ok then
+		MillWizard.Log(string.format("Error starting 2 Axis Mill Wizard: %s", err))
+		return UI
+	else
+		return err
+	end
+end
+
+function MillWizard._CreateSurfacingPanel(UI)
+	UI.surfacingPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Surfacing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	
+	UI.surfacingSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.surfacingSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.surfacingSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	
+	UI.surfacingPosA = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "1. Set Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	
+	UI.surfacingPosA_X = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
+	UI.surfacingSizer:Add( UI.surfacingPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.surfacingPosA_Y = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
+	UI.surfacingSizer:Add( UI.surfacingPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.surfacingPosABtn = MillWizard.GetButton(UI.surfacingPanel:GetPane(), "Set Position A")
+	UI.surfacingSizer:Add( UI.surfacingPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.surfacingPosB = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "2. Go to Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	
+	UI.surfacingStartSpindle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "3. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingStartSpindle, wx.wxGBPosition( 4, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	
+	UI.surfacingLowerZ = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "4. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingLowerZ, wx.wxGBPosition( 5, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	
+	UI.surfacingStartCycle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "5. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingStartCycle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	
+	UI.surfacingStartBtn = MillWizard.GetStartButton(UI.surfacingPanel:GetPane(), "Surfacing")
+	UI.surfacingSizer:Add( UI.surfacingStartBtn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.surfacingPanel:GetPane():SetSizer( UI.surfacingSizer )
+	UI.surfacingPanel:Layout()
+	UI.surfacingSizer:Fit( UI.surfacingPanel )
+	
+	UI.panel_sizer:Add( UI.surfacingPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
+
+	UI.surfacingPosABtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.surfacingPosA_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.surfacingPosA_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+	event:Skip()
+	end )
+	
+	UI.surfacingStartBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		local xpos = tonumber(UI.surfacingPosA_X:GetValue())
+		local ypos = tonumber(UI.surfacingPosA_Y:GetValue())
+		MillWizard.SurfacingRoutine(xpos, ypos, MillWizard.GetXPartPos(), MillWizard.GetYPartPos())
+	event:Skip()
+	end )
+
+	return UI
+end
+
+function MillWizard.GetButton(parent, label)
+	return wx.wxButton(parent, wx.wxID_ANY, label, wx.wxDefaultPosition, wx.wxDefaultSize, 0)
+end
+
+function MillWizard.GetStartButton(parent, cycle)
+	local label = "Start Cycle"
+	local licensed = MillWizard.IsLicensed(cycle)
+	if not licensed then label = MillWizard.GetUnlicensedString() end
+	local btn = MillWizard.GetButton(parent, label)
+	if not licensed then btn:Enable(false) end
+	return btn
+end
+
+function MillWizard.GetXPartPos()
+	return mc.mcAxisGetPos(MillWizard.inst, mc.X_AXIS)
+end
+
+function MillWizard.GetYPartPos()
+	return mc.mcAxisGetPos(MillWizard.inst, mc.Y_AXIS)
+end
+
+function MillWizard.SurfacingRoutine(posA_x, posA_y, posB_x, posB_y)
+	local is_ok, err = pcall(MillWizard._SurfacingRoutine, posA_x, posA_y, posB_x, posB_y)
+	if not is_ok then
+		MillWizard.Log(string.format("Error starting 2 Axis Mill Wizard: %s", err))
+	end
+end
+
+function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y)
+	MillWizard.Log(string.format("Surfacing: (%0.4f, %0.4f) -> (%0.4f, %0.4f)", posA_x, posA_y, posB_x, posB_y))
+end
+
+function MillWizard.IsLicensed(cycle)
+	local cycles_ok_while_not_licensed = 	{
+												["Surfacing"] = true
+											}
+	local pcid = mc.mcCntlGetComputerID(MillWizard.inst)
+	return (pcid == MillWizard.GetPCIDLicensedFor() or cycles_ok_while_not_licensed[cycle] == true)
+end
+
+function MillWizard.GetUnlicensedString()
+	return "(Unlicensed)"
+end
+
+function MillWizard.GetPCIDLicensedFor()
+	return ""
+	-- return "MCH-648A6C58-34F9-AB9D-8EC4-1837A786301D"
 end
 
 MillWizard.CreateFrame()
