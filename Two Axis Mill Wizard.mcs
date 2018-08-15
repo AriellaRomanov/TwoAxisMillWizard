@@ -13,7 +13,7 @@ function MillWizard.CreateFrame()
 end
 
 function MillWizard._CreateFrame()
-	local UI = {}
+	UI = {}
 
 	local parent = mcLuaPanelParent
 	if parent == nil then parent = wx.NULL end
@@ -62,9 +62,7 @@ function MillWizard._CreateFrame()
 	UI.frame:Connect( wx.wxEVT_TIMER, function(event)
 	--implements OnTimerEvent
 		if UI.timer ~= nil then UI.timer:Stop() end
-	
-		
-		
+		MillWizard.OnTimer()
 		if UI.timer ~= nil then UI.timer:Start() end
 		
 		event:Skip()
@@ -79,6 +77,16 @@ function MillWizard._CreateFrame()
 	
 	UI.frame:Centre( wx.wxBOTH )
 	UI.frame:Show()
+end
+
+function MillWizard.OnTimer()
+	if UI.surfacingUnitsText ~= nil then
+		local units = mc.mcCntlGetUnitsCurrent(MillWizard.inst)
+		local label = UI.surfacingUnitsText:GetLabel()
+		local new_label = "inches"
+		if units ~= mc.MC_UNITS_INCH * 10 then new_label = "mm" end
+		if label ~= new_label then UI.surfacingUnitsText:SetLabel(new_label) end
+	end
 end
 
 function MillWizard.CreateSurfacingPanel(UI)
@@ -98,32 +106,41 @@ function MillWizard._CreateSurfacingPanel(UI)
 	UI.surfacingSizer:SetFlexibleDirection( wx.wxBOTH )
 	UI.surfacingSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
-	UI.surfacingPosA = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "1. Set Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	UI.surfacingPosA = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
-	UI.surfacingPosA_X = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
+	UI.surfacingPosA_X = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
 	UI.surfacingSizer:Add( UI.surfacingPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
-	UI.surfacingPosA_Y = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_READONLY + wx.wxTE_RIGHT )
+	UI.surfacingPosA_Y = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
 	UI.surfacingSizer:Add( UI.surfacingPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
-	UI.surfacingPosABtn = MillWizard.GetButton(UI.surfacingPanel:GetPane(), "Set Position A")
+	UI.surfacingPosABtn = MillWizard.GetButton(UI.surfacingPanel:GetPane(), "Teach Position A")
 	UI.surfacingSizer:Add( UI.surfacingPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.surfacingPosB = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "2. Go to Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	UI.surfacingSizer:Add( UI.surfacingPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
-	UI.surfacingStartSpindle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "3. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingStartSpindle, wx.wxGBPosition( 4, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	UI.surfacingStepText = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "3. Set Step-over Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingStepText, wx.wxGBPosition( 4, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
-	UI.surfacingLowerZ = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "4. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingLowerZ, wx.wxGBPosition( 5, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	UI.surfacingStepOver = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0001", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.surfacingSizer:Add( UI.surfacingStepOver, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
-	UI.surfacingStartCycle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "5. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingStartCycle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALL, 5 )
+	UI.surfacingUnitsText = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingUnitsText, wx.wxGBPosition( 5, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	
+	UI.surfacingStartSpindle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "4. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.surfacingLowerZ = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "5. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.surfacingStartCycle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "6. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.surfacingSizer:Add( UI.surfacingStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.surfacingStartBtn = MillWizard.GetStartButton(UI.surfacingPanel:GetPane(), "Surfacing")
-	UI.surfacingSizer:Add( UI.surfacingStartBtn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.surfacingSizer:Add( UI.surfacingStartBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.surfacingPanel:GetPane():SetSizer( UI.surfacingSizer )
 	UI.surfacingPanel:Layout()
@@ -131,6 +148,20 @@ function MillWizard._CreateSurfacingPanel(UI)
 	
 	UI.panel_sizer:Add( UI.surfacingPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
+	UI.surfacingStepOver:Connect( wx.wxEVT_COMMAND_TEXT_ENTER, function(event)
+	--implements onenter
+		local val = tonumber(UI.surfacingStepOver:GetValue())
+		if val < 0 then UI.surfacingStepOver:SetValue(tostring(math.abs(val))) end
+	event:Skip()
+	end )
+	
+	UI.surfacingStepOver:Connect( wx.wxEVT_KILL_FOCUS, function(event)
+	--implements killfocus
+		local val = tonumber(UI.surfacingStepOver:GetValue())
+		if val < 0 then UI.surfacingStepOver:SetValue(tostring(math.abs(val))) end
+	event:Skip()
+	end )
+	
 	UI.surfacingPosABtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
 		UI.surfacingPosA_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
 		UI.surfacingPosA_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
@@ -140,7 +171,8 @@ function MillWizard._CreateSurfacingPanel(UI)
 	UI.surfacingStartBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
 		local xpos = tonumber(UI.surfacingPosA_X:GetValue())
 		local ypos = tonumber(UI.surfacingPosA_Y:GetValue())
-		MillWizard.SurfacingRoutine(xpos, ypos, MillWizard.GetXPartPos(), MillWizard.GetYPartPos())
+		local step = tonumber(UI.surfacingStepOver:GetValue())
+		MillWizard.SurfacingRoutine(xpos, ypos, MillWizard.GetXPartPos(), MillWizard.GetYPartPos(), step)
 	event:Skip()
 	end )
 
@@ -168,15 +200,66 @@ function MillWizard.GetYPartPos()
 	return mc.mcAxisGetPos(MillWizard.inst, mc.Y_AXIS)
 end
 
-function MillWizard.SurfacingRoutine(posA_x, posA_y, posB_x, posB_y)
-	local is_ok, err = pcall(MillWizard._SurfacingRoutine, posA_x, posA_y, posB_x, posB_y)
+function MillWizard.SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
+	local is_ok, err = pcall(MillWizard._SurfacingRoutine, posA_x, posA_y, posB_x, posB_y, step)
 	if not is_ok then
 		MillWizard.Log(string.format("Error starting 2 Axis Mill Wizard: %s", err))
 	end
 end
 
-function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y)
-	MillWizard.Log(string.format("Surfacing: (%0.4f, %0.4f) -> (%0.4f, %0.4f)", posA_x, posA_y, posB_x, posB_y))
+function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
+	MillWizard.Log(string.format("Surfacing: [Step: %0.4f] A(%0.4f, %0.4f) -> B(%0.4f, %0.4f)", step, posA_x, posA_y, posB_x, posB_y))
+	
+	if posA_x == posB_x and posA_y == posB_y then
+		return
+	end
+	
+	local gcode = ""
+	-- check for straight lines
+	if step == 0 or posA_x == posB_x or posA_y == posB_y then
+		gcode = string.format("G01 X%0.6f Y%0.6f", posA_x, posA_y)
+	else
+		-- we are starting at posB and working towards posA
+		-- step amount is expected to come in positive
+		if posA_y < posB_y then step = -step end
+		
+		local pos_x = posB_x
+		local pos_y = posB_y
+		local did_step_in = true
+		
+		while did_step_in do
+			-- move across material
+			if pos_x == posB_x then
+				-- move to A side
+				pos_x = posA_x
+			else
+				-- move to B side
+				pos_x = posB_x
+			end
+			gcode = string.format("%sG01 X%0.4f\n", gcode, pos_x)
+			
+			-- step in
+			if pos_y ~= posA_y then
+				-- wx.wxMessageBox(string.format("%0.2f\nabs(%0.4f - %0.4f) = %0.4f ? %0.2f", step, pos_y, posA_y, math.abs(pos_y - posA_y), math.abs(step)))
+				did_step_in = true
+				if math.abs(pos_y - posA_y) < math.abs(step) then
+					pos_y = posA_y
+				else
+					pos_y = pos_y + step
+				end
+				gcode = string.format("%sG01 Y%0.4f\n", gcode, pos_y)
+			else
+				did_step_in = false
+			end
+		end
+	end
+	
+	if gcode ~= "" then
+		local rc = mc.mcCntlMdiExecute(MillWizard.inst, gcode)
+		if rc ~= mc.MERROR_NOERROR then
+			MillWizard.Log(string.format("Error running surfacing code: %i", rc))
+		end
+	end
 end
 
 function MillWizard.IsLicensed(cycle)
@@ -199,3 +282,4 @@ end
 MillWizard.CreateFrame()
 
 return MillWizard
+
