@@ -92,7 +92,7 @@ end
 function MillWizard.CreateSurfacingPanel(UI)
 	local is_ok, err = pcall(MillWizard._CreateSurfacingPanel, UI)
 	if not is_ok then
-		MillWizard.Log(string.format("Error starting 2 Axis Mill Wizard: %s", err))
+		MillWizard.Log(string.format("Error creating surfacing panel: %s", err))
 		return UI
 	else
 		return err
