@@ -179,6 +179,129 @@ function MillWizard._CreateSurfacingPanel(UI)
 	return UI
 end
 
+function MillWizard.CreateSquarePocketingPanel(UI)
+	local is_ok, err = pcall(MillWizard._CreateSquarePocketingPanel, UI)
+	if not is_ok then
+		MillWizard.Log(string.format("Error creating square pocketing panel: %s", err))
+		return UI
+	else
+		return err
+	end
+end
+
+function MillWizard._CreateSquarePocketingPanel(UI)
+	UI.squarePocketPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Square Pocketing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	
+	UI.squarePocketSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.squarePocketSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.squarePocketSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	
+	UI.squarePocketPosA = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.squarePocketPosA_X = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.squarePocketSizer:Add( UI.squarePocketPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.squarePocketPosA_Y = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.squarePocketSizer:Add( UI.squarePocketPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.squarePocketPosABtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Teach Position A")
+	UI.squarePocketSizer:Add( UI.squarePocketPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.squarePocketPosB = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "2. Teach Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.squarePocketPosB_X = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.squarePocketSizer:Add( UI.squarePocketPosB_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.squarePocketPosB_Y = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.squarePocketSizer:Add( UI.squarePocketPosB_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.squarePocketPosBBtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Teach Position B")
+	UI.squarePocketSizer:Add( UI.squarePocketPosBBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+
+	UI.squarePocketStepText = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "3. Set Step-In Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketStepText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.squarePocketStepIn = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0001", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.squarePocketSizer:Add( UI.squarePocketStepIn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.squarePocketUnitsText = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketUnitsText, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	
+	UI.squarePocketGoToCenter = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "4. Go to Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketPosB, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.squarePocketGoToCenterBtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Go to Center")
+	UI.squarePocketSizer:Add( UI.squarePocketPosBBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.squarePocketStartSpindle = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "5. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketStartSpindle, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.squarePocketLowerZ = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "6. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketLowerZ, wx.wxGBPosition( 11, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.squarePocketStartCycle = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "7. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketSizer:Add( UI.squarePocketStartCycle, wx.wxGBPosition( 12, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.squarePocketStartBtn = MillWizard.GetStartButton(UI.squarePocketPanel:GetPane(), "Square Pocketing")
+	UI.squarePocketSizer:Add( UI.squarePocketStartBtn, wx.wxGBPosition( 13, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.squarePocketPanel:GetPane():SetSizer( UI.squarePocketSizer )
+	UI.squarePocketPanel:Layout()
+	UI.squarePocketSizer:Fit( UI.squarePocketPanel )
+	
+	UI.panel_sizer:Add( UI.squarePocketPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
+
+	UI.squarePocketStepIn:Connect( wx.wxEVT_COMMAND_TEXT_ENTER, function(event)
+	--implements onenter
+		local val = tonumber(UI.squarePocketStepIn:GetValue())
+		if val < 0 then UI.squarePocketStepIn:SetValue(tostring(math.abs(val))) end
+	event:Skip()
+	end )
+	
+	UI.squarePocketStepIn:Connect( wx.wxEVT_KILL_FOCUS, function(event)
+	--implements killfocus
+		local val = tonumber(UI.squarePocketStepIn:GetValue())
+		if val < 0 then UI.squarePocketStepIn:SetValue(tostring(math.abs(val))) end
+	event:Skip()
+	end )
+	
+	UI.squarePocketPosABtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.squarePocketPosA_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.squarePocketPosA_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+	event:Skip()
+	end )
+	
+	UI.squarePocketPosBBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.squarePocketPosB_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.squarePocketPosB_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+	event:Skip()
+	end )
+	
+	UI.squarePocketGoToCenterBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		-- go to center of pos A and pos B
+		local Ax = tonumber(UI.squarePocketPosA_X:GetValue())
+		local Ay = tonumber(UI.squarePocketPosA_Y:GetValue())
+		local Bx = tonumber(UI.squarePocketPosB_X:GetValue())
+		local By = tonumber(UI.squarePocketPosB_Y:GetValue())
+		MillWizard.GoToCenterOfSquare(Ax, Ay, Bx, By)
+	event:Skip()
+	end )
+	
+	UI.squarePocketStartBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		local xpos_a = tonumber(UI.squarePocketPosA_X:GetValue())
+		local ypos_a = tonumber(UI.squarePocketPosA_Y:GetValue())
+		local xpos_b = tonumber(UI.squarePocketPosB_X:GetValue())
+		local ypos_b = tonumber(UI.squarePocketPosB_Y:GetValue())
+		local step = tonumber(UI.squarePocketStepIn:GetValue())
+		MillWizard.SquarePocketingRoutine(xpos_a, ypos_a, xpos_b, ypos_b, MillWizard.GetXPartPos(), MillWizard.GetYPartPos(), step)
+	event:Skip()
+	end )
+
+	return UI
+end
+
 function MillWizard.GetButton(parent, label)
 	return wx.wxButton(parent, wx.wxID_ANY, label, wx.wxDefaultPosition, wx.wxDefaultSize, 0)
 end
@@ -203,7 +326,7 @@ end
 function MillWizard.SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 	local is_ok, err = pcall(MillWizard._SurfacingRoutine, posA_x, posA_y, posB_x, posB_y, step)
 	if not is_ok then
-		MillWizard.Log(string.format("Error starting 2 Axis Mill Wizard: %s", err))
+		MillWizard.Log(string.format("Error running surfacing routine: %s", err))
 	end
 end
 
@@ -262,6 +385,35 @@ function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 	end
 end
 
+function MillWizard.SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
+	local is_ok, err = pcall(MillWizard._SquarePocketingRoutine, posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
+	if not is_ok then
+		MillWizard.Log(string.format("Error running square pocketing routine: %s", err))
+	end
+end
+
+function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
+	-- get tool diameter
+	-- get max and min edges
+end
+
+function MillWizard.GoToCenterOfSquare(Ax, Ay, Bx, By)
+	local is_ok, err = pcall(MillWizard._GoToCenterOfSquare, Ax, Ay, Bx, By)
+	if not is_ok then
+		MillWizard.Log(string.format("Error going to center of square: %s", err))
+	end
+end
+
+function MillWizard._GoToCenterOfSquare(Ax, Ay, Bx, By)
+	local center_x = (Ax + Bx) / 2
+	local center_y = (Ay + By) / 2
+	
+	local rc = mc.mcCntlMdiExecute(MillWizard.inst, string.format("G00 X%0.6f Y%0.6f", center_x, center_y))
+	if rc ~= mc.MERROR_NOERROR then
+		MillWizard.Log(string.format("Error going to center of square pocket: %i", rc))
+	end
+end
+
 function MillWizard.IsLicensed(cycle)
 	local cycles_ok_while_not_licensed = 	{
 												["Surfacing"] = true
@@ -282,4 +434,3 @@ end
 MillWizard.CreateFrame()
 
 return MillWizard
-
