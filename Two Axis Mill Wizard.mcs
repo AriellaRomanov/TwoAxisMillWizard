@@ -36,6 +36,7 @@ function MillWizard._CreateFrame()
 	UI.panel_sizer = wx.wxBoxSizer( wx.wxVERTICAL )
 	
 	UI = MillWizard.CreateSurfacingPanel(UI)
+	UI = MillWizard.CreateSquarePocketingPanel(UI)
 	
 	UI.scroll_panel:SetSizer( UI.panel_sizer )
 	UI.scroll_panel:Layout()
@@ -230,10 +231,10 @@ function MillWizard._CreateSquarePocketingPanel(UI)
 	UI.squarePocketSizer:Add( UI.squarePocketUnitsText, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
 	UI.squarePocketGoToCenter = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "4. Go to Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketPosB, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketSizer:Add( UI.squarePocketGoToCenter, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketGoToCenterBtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Go to Center")
-	UI.squarePocketSizer:Add( UI.squarePocketPosBBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.squarePocketSizer:Add( UI.squarePocketGoToCenterBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.squarePocketStartSpindle = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "5. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 	UI.squarePocketSizer:Add( UI.squarePocketStartSpindle, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
