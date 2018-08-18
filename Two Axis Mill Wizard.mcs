@@ -2,6 +2,7 @@ MillWizard = {}
 MillWizard.inst = mc.mcGetInstance("Two Axis Mill Wizard")
 
 function MillWizard.Log(msg)
+	mc.mcCntlSetLastError(MillWizard.inst, tostring(msg))
 	mc.mcCntlLog(MillWizard.inst, tostring(msg), "Two Axis Mill Wizard.mcs", 5)
 end
 
@@ -75,7 +76,7 @@ function MillWizard._CreateFrame()
 	if width < 600 then width = 600 end
 	if height < 400 then height = 400 end
 	UI.frame:SetMinSize(wx.wxSize(width, height))
-	
+
 	UI.frame:Centre( wx.wxBOTH )
 	UI.frame:Show()
 end
@@ -88,6 +89,10 @@ function MillWizard.OnTimer()
 		if units ~= mc.MC_UNITS_INCH * 10 then new_label = "mm" end
 		if label ~= new_label then UI.surfacingUnitsText:SetLabel(new_label) end
 	end
+end
+
+function MillWizard.OnPanelChanged(event)
+	UI.scroll_panel:Layout()
 end
 
 function MillWizard.CreateSurfacingPanel(UI)
@@ -149,6 +154,11 @@ function MillWizard._CreateSurfacingPanel(UI)
 	
 	UI.panel_sizer:Add( UI.surfacingPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
+	UI.surfacingPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
+		MillWizard.OnPanelChanged(event)
+		event:Skip()
+	end )
+	
 	UI.surfacingStepOver:Connect( wx.wxEVT_COMMAND_TEXT_ENTER, function(event)
 	--implements onenter
 		local val = tonumber(UI.surfacingStepOver:GetValue())
@@ -170,6 +180,8 @@ function MillWizard._CreateSurfacingPanel(UI)
 	end )
 	
 	UI.surfacingStartBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		MillWizard.Log("Surfacing Start Cycle Pressed")
+	
 		local xpos = tonumber(UI.surfacingPosA_X:GetValue())
 		local ypos = tonumber(UI.surfacingPosA_Y:GetValue())
 		local step = tonumber(UI.surfacingStepOver:GetValue())
@@ -254,6 +266,11 @@ function MillWizard._CreateSquarePocketingPanel(UI)
 	
 	UI.panel_sizer:Add( UI.squarePocketPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
+	UI.squarePocketPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
+		MillWizard.OnPanelChanged(event)
+		event:Skip()
+	end )
+	
 	UI.squarePocketStepIn:Connect( wx.wxEVT_COMMAND_TEXT_ENTER, function(event)
 	--implements onenter
 		local val = tonumber(UI.squarePocketStepIn:GetValue())
@@ -286,17 +303,19 @@ function MillWizard._CreateSquarePocketingPanel(UI)
 		local Ay = tonumber(UI.squarePocketPosA_Y:GetValue())
 		local Bx = tonumber(UI.squarePocketPosB_X:GetValue())
 		local By = tonumber(UI.squarePocketPosB_Y:GetValue())
-		MillWizard.GoToCenterOfSquare(Ax, Ay, Bx, By)
+		MillWizard.GoToCenter(Ax, Ay, Bx, By)
 	event:Skip()
 	end )
 	
 	UI.squarePocketStartBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		MillWizard.Log("Square Pocketing Start Cycle Pressed")
+	
 		local xpos_a = tonumber(UI.squarePocketPosA_X:GetValue())
 		local ypos_a = tonumber(UI.squarePocketPosA_Y:GetValue())
 		local xpos_b = tonumber(UI.squarePocketPosB_X:GetValue())
 		local ypos_b = tonumber(UI.squarePocketPosB_Y:GetValue())
 		local step = tonumber(UI.squarePocketStepIn:GetValue())
-		MillWizard.SquarePocketingRoutine(xpos_a, ypos_a, xpos_b, ypos_b, MillWizard.GetXPartPos(), MillWizard.GetYPartPos(), step)
+		MillWizard.SquarePocketingRoutine(xpos_a, ypos_a, xpos_b, ypos_b, step)
 	event:Skip()
 	end )
 
@@ -332,8 +351,6 @@ function MillWizard.SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 end
 
 function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
-	MillWizard.Log(string.format("Surfacing: [Step: %0.4f] A(%0.4f, %0.4f) -> B(%0.4f, %0.4f)", step, posA_x, posA_y, posB_x, posB_y))
-	
 	if posA_x == posB_x and posA_y == posB_y then
 		return
 	end
@@ -380,14 +397,14 @@ function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 	MillWizard.RunGcode(gcode, "Error running surfacing code")
 end
 
-function MillWizard.SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
-	local is_ok, err = pcall(MillWizard._SquarePocketingRoutine, posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
+function MillWizard.SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, step)
+	local is_ok, err = pcall(MillWizard._SquarePocketingRoutine, posA_x, posA_y, posB_x, posB_y, step)
 	if not is_ok then
 		MillWizard.Log(string.format("Error running square pocketing routine: %s", err))
 	end
 end
 
-function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
+function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 	-- get tool size
 	local tool = mc.mcToolGetCurrent(MillWizard.inst)
 	local tool_diameter = mc.mcToolGetData(MillWizard.inst, mc.MTOOL_MILL_DIA, tool)
@@ -395,19 +412,22 @@ function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, cent
 	local tool_radius = (tool_diameter - tool_wear) / 2
 
 	-- get max and min edges
-	if posA_x ~= posB_x then
-		posA_x = posA_x - tool_radius
-		posB_x = posB_x - tool_radius
-	end
-	if posA_y ~= posB_y then
-		posA_y = posA_y - tool_radius
-		posB_y = posB_y + tool_radius
-	end
-
 	local max_x = math.max(posA_x, posB_x)
 	local min_x = math.min(posA_x, posB_x)
 	local max_y = math.max(posA_y, posB_y)
 	local min_y = math.min(posA_y, posB_y)
+	
+	if max_x ~= min_x then
+		max_x = max_x - tool_radius
+		min_x = min_x + tool_radius
+	end
+	if max_y ~= min_y then
+		max_y = max_y - tool_radius
+		min_y = min_y + tool_radius
+	end
+	
+	local center_x = (max_x + min_x) / 2
+	local center_y = (max_y + min_y) / 2
 
 	local gcode = "G90\n"
 	if max_x == min_x or max_y == min_y then
@@ -422,7 +442,7 @@ function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, cent
 		local min_dist = math.min(x_dist, y_dist)
 		local x_step = step
 		local y_step = step
-		local iters = max_dist / step
+		local iters = (max_dist / 2) / step
 		
 		if max_dist ~= min_dist then
 			local left_over = max_dist - (iters * step)
@@ -445,33 +465,33 @@ function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, cent
 			x_inc = x_inc + x_step
 			y_inc = y_inc + y_step
 
-			-- increment towards x_max
-			gcode = string.format("%sG01 X%0.6f\n", gcode, x_center + x_inc)
-			-- go towards y_max
-			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center + y_inc)
-			-- go towards x_min
-			gcode = string.format("%sG01 X%0.6f\n", gcode, x_center - x_inc)
-			-- go towards y_min
-			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center - y_inc)
-			-- go towards x_max
-			gcode = string.format("%sG01 X%0.6f\n", gcode, x_center + x_inc)
+			-- increment towards max_x
+			gcode = string.format("%sG01 X%0.6f\n", gcode, center_x + x_inc)
+			-- go towards max_y
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, center_y + y_inc)
+			-- go towards min_x
+			gcode = string.format("%sG01 X%0.6f\n", gcode, center_x - x_inc)
+			-- go towards min_y
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, center_y - y_inc)
+			-- go towards max_x
+			gcode = string.format("%sG01 X%0.6f\n", gcode, center_x + x_inc)
 			-- go back to center_y
-			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center)
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, center_y)
 		end
 
-		if x_center + x_inc ~= x_max then
-			-- increment towards x_max
-			gcode = string.format("%sG01 X%0.6f\n", gcode, x_max)
-			-- go towards y_max
-			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_max)
-			-- go towards x_min
-			gcode = string.format("%sG01 X%0.6f\n", gcode, x_min)
-			-- go towards y_min
-			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_min)
-			-- go towards x_max
-			gcode = string.format("%sG01 X%0.6f\n", gcode, x_max)
+		if center_x + x_inc ~= max_x then
+			-- increment towards max_x
+			gcode = string.format("%sG01 X%0.6f\n", gcode, max_x)
+			-- go towards max_y
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, max_y)
+			-- go towards min_x
+			gcode = string.format("%sG01 X%0.6f\n", gcode, min_x)
+			-- go towards min_y
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, min_y)
+			-- go towards max_x
+			gcode = string.format("%sG01 X%0.6f\n", gcode, max_x)
 			-- go back to center_y
-			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center)
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, center_y)
 		end
 
 	end
@@ -522,8 +542,8 @@ function MillWizard.GetUnlicensedString()
 end
 
 function MillWizard.GetPCIDLicensedFor()
-	return ""
-	-- return "MCH-648A6C58-34F9-AB9D-8EC4-1837A786301D"
+	-- return ""
+	return "MCH-648A6C58-34F9-AB9D-8EC4-1837A786301D"
 end
 
 MillWizard.CreateFrame()
