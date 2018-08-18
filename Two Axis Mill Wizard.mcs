@@ -38,6 +38,7 @@ function MillWizard._CreateFrame()
 	
 	UI = MillWizard.CreateSurfacingPanel(UI)
 	UI = MillWizard.CreateSquarePocketingPanel(UI)
+	UI = MillWizard.CreateCircleRadiusPocketingPanel(UI)
 	
 	UI.scroll_panel:SetSizer( UI.panel_sizer )
 	UI.scroll_panel:Layout()
@@ -82,11 +83,18 @@ function MillWizard._CreateFrame()
 end
 
 function MillWizard.OnTimer()
-	if UI.surfacingUnitsText ~= nil then
-		local units = mc.mcCntlGetUnitsCurrent(MillWizard.inst)
+	local units_text = {
+		UI.surfacingUnitsText,
+		UI.squarePocketUnitsText,
+		UI.circleRadiusPocketUnitsText
+	}
+
+	local units = mc.mcCntlGetUnitsCurrent(MillWizard.inst)
+	local new_label = "inches"
+	if units ~= mc.MC_UNITS_INCH * 10 then new_label = "mm" end
+
+	for i = 1, #units_text do
 		local label = UI.surfacingUnitsText:GetLabel()
-		local new_label = "inches"
-		if units ~= mc.MC_UNITS_INCH * 10 then new_label = "mm" end
 		if label ~= new_label then UI.surfacingUnitsText:SetLabel(new_label) end
 	end
 end
@@ -130,7 +138,7 @@ function MillWizard._CreateSurfacingPanel(UI)
 	UI.surfacingStepText = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "3. Set Step-over Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 	UI.surfacingSizer:Add( UI.surfacingStepText, wx.wxGBPosition( 4, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
-	UI.surfacingStepOver = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0001", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.surfacingStepOver = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.1000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
 	UI.surfacingSizer:Add( UI.surfacingStepOver, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.surfacingUnitsText = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
@@ -233,10 +241,10 @@ function MillWizard._CreateSquarePocketingPanel(UI)
 	UI.squarePocketPosBBtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Teach Position B")
 	UI.squarePocketSizer:Add( UI.squarePocketPosBBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
-	UI.squarePocketStepText = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "3. Set Step-In Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.squarePocketStepText = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "3. Set Step Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 	UI.squarePocketSizer:Add( UI.squarePocketStepText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
-	UI.squarePocketStepIn = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0001", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.squarePocketStepIn = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.1000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
 	UI.squarePocketSizer:Add( UI.squarePocketStepIn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.squarePocketUnitsText = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
@@ -316,6 +324,135 @@ function MillWizard._CreateSquarePocketingPanel(UI)
 		local ypos_b = tonumber(UI.squarePocketPosB_Y:GetValue())
 		local step = tonumber(UI.squarePocketStepIn:GetValue())
 		MillWizard.SquarePocketingRoutine(xpos_a, ypos_a, xpos_b, ypos_b, step)
+	event:Skip()
+	end )
+
+	return UI
+end
+
+function MillWizard.CreateCircleRadiusPocketingPanel(UI)
+	local is_ok, err = pcall(MillWizard._CreateCircleRadiusPocketingPanel, UI)
+	if not is_ok then
+		MillWizard.Log(string.format("Error creating cirle (radius) pocketing panel: %s", err))
+		return UI
+	else
+		return err
+	end
+end
+
+function MillWizard._CreateCircleRadiusPocketingPanel(UI)
+	UI.circleRadiusPocketPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Circle (Radius) Pocketing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	
+	UI.circleRadiusPocketSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.circleRadiusPocketSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.circleRadiusPocketSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	
+	UI.circleRadiusPocketCenter = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "1. Teach Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenter, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketCenter_X = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenter_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketCenter_Y = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenter_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketCenterBtn = MillWizard.GetButton(UI.circleRadiusPocketPanel:GetPane(), "Teach Center")
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenterBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.circleRadiusPocketRadius = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "2. Teach Radius", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketRadius, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketRadiusDRO = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketRadiusDRO, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+
+	UI.circleRadiusPocketRadiusBtn = MillWizard.GetButton(UI.circleRadiusPocketPanel:GetPane(), "Teach Radius")
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketRadiusBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+
+	UI.circleRadiusPocketStepText = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "3. Set Step Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStepText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketStepIn = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.1000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStepIn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketUnitsText = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketUnitsText, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	
+	UI.circleRadiusPocketGoToCenter = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "4. Go to Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketGoToCenter, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketGoToCenterBtn = MillWizard.GetButton(UI.circleRadiusPocketPanel:GetPane(), "Go to Center")
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketGoToCenterBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.circleRadiusPocketStartSpindle = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "5. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStartSpindle, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketLowerZ = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "6. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketLowerZ, wx.wxGBPosition( 11, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketStartCycle = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "7. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStartCycle, wx.wxGBPosition( 12, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.circleRadiusPocketStartBtn = MillWizard.GetStartButton(UI.circleRadiusPocketPanel:GetPane(), "Square Pocketing")
+	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStartBtn, wx.wxGBPosition( 13, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.circleRadiusPocketPanel:GetPane():SetSizer( UI.circleRadiusPocketSizer )
+	UI.circleRadiusPocketPanel:Layout()
+	UI.circleRadiusPocketSizer:Fit( UI.circleRadiusPocketPanel )
+	
+	UI.panel_sizer:Add( UI.circleRadiusPocketPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
+
+	UI.circleRadiusPocketPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
+		MillWizard.OnPanelChanged(event)
+		event:Skip()
+	end )
+	
+	UI.circleRadiusPocketStepIn:Connect( wx.wxEVT_COMMAND_TEXT_ENTER, function(event)
+	--implements onenter
+		local val = tonumber(UI.circleRadiusPocketStepIn:GetValue())
+		if val < 0 then UI.circleRadiusPocketStepIn:SetValue(tostring(math.abs(val))) end
+	event:Skip()
+	end )
+	
+	UI.circleRadiusPocketStepIn:Connect( wx.wxEVT_KILL_FOCUS, function(event)
+	--implements killfocus
+		local val = tonumber(UI.circleRadiusPocketStepIn:GetValue())
+		if val < 0 then UI.circleRadiusPocketStepIn:SetValue(tostring(math.abs(val))) end
+	event:Skip()
+	end )
+	
+	UI.circleRadiusPocketCenterBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.circleRadiusPocketCenter_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.circleRadiusPocketCenter_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+	event:Skip()
+	end )
+	
+	UI.circleRadiusPocketRadiusBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		local Ax = tonumber(UI.circleRadiusPocketCenter_X:GetValue())
+		local Ay = tonumber(UI.circleRadiusPocketCenter_Y:GetValue())
+		local Bx = MillWizard.GetXPartPos()
+		local By = MillWizard.GetYPartPos()
+
+		local radius = math.sqrt(math.pow(Ax - Bx, 2) + math.pow(Ay - By, 2))
+		UI.circleRadiusPocketRadiusDRO:SetValue(string.format("%0.4f", radius))
+	event:Skip()
+	end )
+	
+	UI.circleRadiusPocketGoToCenterBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		-- go to center of pos A and pos B
+		local Ax = tonumber(UI.circleRadiusPocketCenter_X:GetValue())
+		local Ay = tonumber(UI.circleRadiusPocketCenter_Y:GetValue())
+		MillWizard.GoToCenter(Ax, Ay, Ax, Ay)
+	event:Skip()
+	end )
+	
+	UI.circleRadiusPocketStartBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		MillWizard.Log("Circle (Radius) Pocketing Start Cycle Pressed")
+	
+		local center_x = tonumber(UI.circleRadiusPocketCenter_X:GetValue())
+		local center_y = tonumber(UI.circleRadiusPocketCenter_Y:GetValue())
+		local radius = tonumber(UI.circleRadiusPocketRadiusDRO:GetValue())
+		local step = tonumber(UI.circleRadiusPocketStepIn:GetValue())
+		MillWizard.CirclePocketingRoutine(center_x, center_y, radius, step)
 	event:Skip()
 	end )
 
@@ -499,6 +636,53 @@ function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, step
 	-- go back to center
 	gcode = string.format("%sG00 X%0.6f Y%0.6f\n", gcode, center_x, center_y)
 	MillWizard.RunGcode(gcode, "Error running square pocketing code")
+end
+
+function MillWizard.CirclePocketingRoutine(center_x, center_y, radius, step)
+	local is_ok, err = pcall(MillWizard._CirclePocketingRoutine, center_x, center_y, radius, step)
+	if not is_ok then
+		MillWizard.Log(string.format("Error running circle pocketing routine: %s", err))
+	end
+end
+
+function MillWizard._CirclePocketingRoutine(center_x, center_y, radius, step)
+	-- get tool size
+	local tool = mc.mcToolGetCurrent(MillWizard.inst)
+	local tool_diameter = mc.mcToolGetData(MillWizard.inst, mc.MTOOL_MILL_DIA, tool)
+	local tool_wear = mc.mcToolGetData(MillWizard.inst, mc.MTOOL_MILL_DIA_W, tool)
+	local tool_radius = (tool_diameter - tool_wear) / 2
+	radius = radius - tool_radius
+
+	-- spiral out
+	local iters = math.floor(radius / step)
+
+	local increment = 0
+
+	local gcode = "G90 G90.1\n"
+	for i = 1, iters do
+		-- new bounds, distance from center
+		increment = increment + step
+
+		-- increment towards radius
+		gcode = string.format("%sG01 X%0.6f\n", gcode, center_x + increment)
+		-- half circle
+		gcode = string.format("%sG03 X%0.6f Y%0.6f I%0.6f J%0.6f\n", gcode, center_x - increment, center_y, center_x, center_y)
+		-- half circle
+		gcode = string.format("%sG03 X%0.6f Y%0.6f I%0.6f J%0.6f\n", gcode, center_x + increment, center_y, center_x, center_y)
+	end
+
+	if increment ~= radius then
+		-- increment towards radius
+		gcode = string.format("%sG01 X%0.6f\n", gcode, radius)
+		-- half circle
+		gcode = string.format("%sG03 X%0.6f Y%0.6f I%0.6f J%0.6f\n", gcode, center_x - radius, center_y, center_x, center_y)
+		-- half circle
+		gcode = string.format("%sG03 X%0.6f Y%0.6f I%0.6f J%0.6f\n", gcode, center_x + radius, center_y, center_x, center_y)
+	end
+
+	-- go back to center
+	gcode = string.format("%sG00 X%0.6f Y%0.6f\n", gcode, center_x, center_y)
+	MillWizard.RunGcode(gcode, "Error running circle pocketing code")
 end
 
 function MillWizard.GoToCenter(Ax, Ay, Bx, By)
