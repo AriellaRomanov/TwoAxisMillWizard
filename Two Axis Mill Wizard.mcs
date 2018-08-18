@@ -338,10 +338,10 @@ function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 		return
 	end
 	
-	local gcode = ""
+	local gcode = "G90\n"
 	-- check for straight lines
 	if step == 0 or posA_x == posB_x or posA_y == posB_y then
-		gcode = string.format("G01 X%0.6f Y%0.6f", posA_x, posA_y)
+		gcode = string.format("%sG01 X%0.6f Y%0.6f", gcode, posA_x, posA_y)
 	else
 		-- we are starting at posB and working towards posA
 		-- step amount is expected to come in positive
@@ -364,7 +364,6 @@ function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 			
 			-- step in
 			if pos_y ~= posA_y then
-				-- wx.wxMessageBox(string.format("%0.2f\nabs(%0.4f - %0.4f) = %0.4f ? %0.2f", step, pos_y, posA_y, math.abs(pos_y - posA_y), math.abs(step)))
 				did_step_in = true
 				if math.abs(pos_y - posA_y) < math.abs(step) then
 					pos_y = posA_y
@@ -378,12 +377,7 @@ function MillWizard._SurfacingRoutine(posA_x, posA_y, posB_x, posB_y, step)
 		end
 	end
 	
-	if gcode ~= "" then
-		local rc = mc.mcCntlMdiExecute(MillWizard.inst, gcode)
-		if rc ~= mc.MERROR_NOERROR then
-			MillWizard.Log(string.format("Error running surfacing code: %i", rc))
-		end
-	end
+	MillWizard.RunGcode(gcode, "Error running surfacing code")
 end
 
 function MillWizard.SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
@@ -394,24 +388,124 @@ function MillWizard.SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, cente
 end
 
 function MillWizard._SquarePocketingRoutine(posA_x, posA_y, posB_x, posB_y, center_x, center_y, step)
-	-- get tool diameter
+	-- get tool size
+	local tool = mc.mcToolGetCurrent(MillWizard.inst)
+	local tool_diameter = mc.mcToolGetData(MillWizard.inst, mc.MTOOL_MILL_DIA, tool)
+	local tool_wear = mc.mcToolGetData(MillWizard.inst, mc.MTOOL_MILL_DIA_W, tool)
+	local tool_radius = (tool_diameter - tool_wear) / 2
+
 	-- get max and min edges
+	if posA_x ~= posB_x then
+		posA_x = posA_x - tool_radius
+		posB_x = posB_x - tool_radius
+	end
+	if posA_y ~= posB_y then
+		posA_y = posA_y - tool_radius
+		posB_y = posB_y + tool_radius
+	end
+
+	local max_x = math.max(posA_x, posB_x)
+	local min_x = math.min(posA_x, posB_x)
+	local max_y = math.max(posA_y, posB_y)
+	local min_y = math.min(posA_y, posB_y)
+
+	local gcode = "G90\n"
+	if max_x == min_x or max_y == min_y then
+		-- straight line
+		gcode = string.format("%sG01 X%0.6f Y%0.6f\n", gcode, max_x, max_y)
+		gcode = string.format("%sG01 X%0.6f Y%0.6f\n", gcode, min_x, min_y);
+	else
+		-- spiral out
+		local x_dist = max_x - min_x
+		local y_dist = max_y - min_y
+		local max_dist = math.max(x_dist, y_dist)
+		local min_dist = math.min(x_dist, y_dist)
+		local x_step = step
+		local y_step = step
+		local iters = max_dist / step
+		
+		if max_dist ~= min_dist then
+			local left_over = max_dist - (iters * step)
+			local _min_dist = min_dist - left_over
+			local min_step = _min_dist / iters
+
+			if x_dist > y_dist then
+				y_step = min_step
+			else
+				x_step = min_step
+			end
+		end
+
+		local x_inc = 0
+		local y_inc = 0
+		iters = math.floor(iters)
+
+		for i = 1, iters do
+			-- new bounds, distance from center
+			x_inc = x_inc + x_step
+			y_inc = y_inc + y_step
+
+			-- increment towards x_max
+			gcode = string.format("%sG01 X%0.6f\n", gcode, x_center + x_inc)
+			-- go towards y_max
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center + y_inc)
+			-- go towards x_min
+			gcode = string.format("%sG01 X%0.6f\n", gcode, x_center - x_inc)
+			-- go towards y_min
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center - y_inc)
+			-- go towards x_max
+			gcode = string.format("%sG01 X%0.6f\n", gcode, x_center + x_inc)
+			-- go back to center_y
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center)
+		end
+
+		if x_center + x_inc ~= x_max then
+			-- increment towards x_max
+			gcode = string.format("%sG01 X%0.6f\n", gcode, x_max)
+			-- go towards y_max
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_max)
+			-- go towards x_min
+			gcode = string.format("%sG01 X%0.6f\n", gcode, x_min)
+			-- go towards y_min
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_min)
+			-- go towards x_max
+			gcode = string.format("%sG01 X%0.6f\n", gcode, x_max)
+			-- go back to center_y
+			gcode = string.format("%sG01 Y%0.6f\n", gcode, y_center)
+		end
+
+	end
+
+	-- go back to center
+	gcode = string.format("%sG00 X%0.6f Y%0.6f\n", gcode, center_x, center_y)
+	MillWizard.RunGcode(gcode, "Error running square pocketing code")
 end
 
-function MillWizard.GoToCenterOfSquare(Ax, Ay, Bx, By)
-	local is_ok, err = pcall(MillWizard._GoToCenterOfSquare, Ax, Ay, Bx, By)
+function MillWizard.GoToCenter(Ax, Ay, Bx, By)
+	local is_ok, err = pcall(MillWizard._GoToCenter, Ax, Ay, Bx, By)
 	if not is_ok then
 		MillWizard.Log(string.format("Error going to center of square: %s", err))
 	end
 end
 
-function MillWizard._GoToCenterOfSquare(Ax, Ay, Bx, By)
+function MillWizard._GoToCenter(Ax, Ay, Bx, By)
 	local center_x = (Ax + Bx) / 2
 	local center_y = (Ay + By) / 2
-	
-	local rc = mc.mcCntlMdiExecute(MillWizard.inst, string.format("G00 X%0.6f Y%0.6f", center_x, center_y))
-	if rc ~= mc.MERROR_NOERROR then
-		MillWizard.Log(string.format("Error going to center of square pocket: %i", rc))
+	MillWizard.RunGcode(string.format("G00 X%0.6f Y%0.6f", center_x, center_y), "Error going to center")
+end
+
+function MillWizard.GetGoToCenterGcode(Ax, Ay, Bx, By)
+	local center_x = (Ax + Bx) / 2
+	local center_y = (Ay + By) / 2
+	return string.format("G00 X%0.6f Y%0.6f", center_x, center_y)
+end
+
+function MillWizard.RunGcode(gcode, err_msg)
+	if gcode ~= nil and tostring(gcode) and tostring(gcode) ~= "" then
+		local rc = mc.mcCntlMdiExecute(MillWizard.inst, tostring(gcode))
+		if rc ~= mc.MERROR_NOERROR then
+			MillWizard.Log(string.format("%s: %i", tostring(err_msg), rc))
+		end
 	end
 end
 
