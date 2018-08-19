@@ -39,7 +39,7 @@ function MillWizard._CreateFrame()
 	
 	UI = MillWizard.CreateSurfacingPanel(UI)
 	UI = MillWizard.CreatePerimeterMillPanel(UI)
-	-- UI = MillWizard.CreateLineMillPanel(UI)
+	UI = MillWizard.CreateLineMillPanel(UI)
 	-- UI = MillWizard.CreateArcMillPanel(UI)
 	UI = MillWizard.CreateSquarePocketingPanel(UI)
 	UI = MillWizard.CreateCircleRadiusPocketingPanel(UI)
@@ -677,7 +677,7 @@ function MillWizard._CreateBoltLinePanel(UI)
 	UI.boltLineNextHole = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "4. Go to Next Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 	UI.boltLineSizer:Add( UI.boltLineNextHole, wx.wxGBPosition( 9, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
-	UI.boltLineNextHoleBtn = MillWizard.GetStartButton(UI.boltLinePanel:GetPane(), "Bolt Line Circle", "Next Hole")
+	UI.boltLineNextHoleBtn = MillWizard.GetStartButton(UI.boltLinePanel:GetPane(), "Bolt Hole Line", "Next Hole")
 	UI.boltLineSizer:Add( UI.boltLineNextHoleBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.boltLinePanel:GetPane():SetSizer( UI.boltLineSizer )
@@ -840,6 +840,106 @@ function MillWizard._CreatePerimeterMillPanel(UI)
 		local ypos = tonumber(UI.perimeterPosA_Y:GetValue())
 		MillWizard.PerimeterRoutine(xpos, ypos, MillWizard.GetXPartPos(), MillWizard.GetYPartPos())
 	event:Skip()
+	end )
+
+	return UI
+end
+
+function MillWizard.CreateLineMillPanel(UI)
+	local is_ok, err = pcall(MillWizard._CreateLineMillPanel, UI)
+	if not is_ok then
+		MillWizard.Log(string.format("Error creating line mill panel: %s", err))
+		return UI
+	else
+		return err
+	end
+end
+
+function MillWizard._CreateLineMillPanel(UI)
+	UI.lineMillPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Line Mill", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	
+	UI.lineMillSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.lineMillSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.lineMillSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	
+	UI.lineMillPosA = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.lineMillSizer:Add( UI.lineMillPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.lineMillPosA_X = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.lineMillSizer:Add( UI.lineMillPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.lineMillPosA_Y = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.lineMillSizer:Add( UI.lineMillPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.lineMillPosABtn = MillWizard.GetButton(UI.lineMillPanel:GetPane(), "Teach Position A")
+	UI.lineMillSizer:Add( UI.lineMillPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.lineMillPosB = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "2. Go to Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.lineMillSizer:Add( UI.lineMillPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.lineMillPosB_X = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.lineMillSizer:Add( UI.lineMillPosB_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.lineMillPosB_Y = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.lineMillSizer:Add( UI.lineMillPosB_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.lineMillPosBBtn = MillWizard.GetButton(UI.lineMillPanel:GetPane(), "Teach Position B")
+	UI.lineMillSizer:Add( UI.lineMillPosBBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+
+	UI.lineMillStartSpindle = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "4. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.lineMillSizer:Add( UI.lineMillStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.lineMillLowerZ = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "5. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.lineMillSizer:Add( UI.lineMillLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.lineMillStartCycle = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "6. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.lineMillSizer:Add( UI.lineMillStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.lineMillABtn = MillWizard.GetStartButton(UI.lineMillPanel:GetPane(), "Line Mill", "Go to A")
+	UI.lineMillSizer:Add( UI.lineMillABtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+
+	UI.lineMillBBtn = MillWizard.GetStartButton(UI.lineMillPanel:GetPane(), "Line Mill", "Go to A")
+	UI.lineMillSizer:Add( UI.lineMillBBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.lineMillPanel:GetPane():SetSizer( UI.lineMillSizer )
+	UI.lineMillPanel:Layout()
+	UI.lineMillSizer:Fit( UI.lineMillPanel )
+	
+	UI.panel_sizer:Add( UI.lineMillPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
+
+	UI.lineMillPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
+		MillWizard.OnPanelChanged(event)
+		event:Skip()
+	end )
+
+	UI.lineMillPosABtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.lineMillPosA_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.lineMillPosA_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+		event:Skip()
+	end )
+
+	UI.lineMillPosBBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.lineMillPosB_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.lineMillPosB_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+		event:Skip()
+	end )
+	
+	UI.lineMillABtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		MillWizard.Log("Line Mill Go to A Pressed")
+	
+		local xpos = tonumber(UI.lineMillPosA_X:GetValue())
+		local ypos = tonumber(UI.lineMillPosA_Y:GetValue())
+		MillWizard.GoToCenter(xpos, ypos, xpos, ypos)
+		event:Skip()
+	end )
+
+	UI.lineMillBBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		MillWizard.Log("Line Mill Go to B Pressed")
+	
+		local xpos = tonumber(UI.lineMillPosB_X:GetValue())
+		local ypos = tonumber(UI.lineMillPosB_Y:GetValue())
+		MillWizard.GoToCenter(xpos, ypos, xpos, ypos)
+		event:Skip()
 	end )
 
 	return UI
