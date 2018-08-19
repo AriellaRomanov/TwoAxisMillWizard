@@ -10,6 +10,7 @@ function MillWizard.CreateFrame()
 	local is_ok, err = pcall(MillWizard._CreateFrame)
 	if not is_ok then
 		MillWizard.Log(string.format("Error starting 2 Axis Mill Wizard: %s", err))
+		UI = nil
 	end
 end
 
@@ -37,9 +38,14 @@ function MillWizard._CreateFrame()
 	UI.panel_sizer = wx.wxBoxSizer( wx.wxVERTICAL )
 	
 	UI = MillWizard.CreateSurfacingPanel(UI)
+	UI = MillWizard.CreatePerimeterMillPanel(UI)
+	-- UI = MillWizard.CreateLineMillPanel(UI)
+	-- UI = MillWizard.CreateArcMillPanel(UI)
 	UI = MillWizard.CreateSquarePocketingPanel(UI)
 	UI = MillWizard.CreateCircleRadiusPocketingPanel(UI)
 	UI = MillWizard.CreateBoltHolePanel(UI)
+	UI = MillWizard.CreateBoltLinePanel(UI)
+	-- UI = MillWizard.CreateEngravingPanel(UI)
 	
 	UI.scroll_panel:SetSizer( UI.panel_sizer )
 	UI.scroll_panel:Layout()
@@ -57,14 +63,14 @@ function MillWizard._CreateFrame()
 	-- Connect Events
 	
 	UI.frame:Connect( wx.wxEVT_CLOSE_WINDOW, function(event)
-	--implements OnCloseEvent
+		--implements OnCloseEvent
 		UI.timer:Stop()
 		UI.timer = nil
-	event:Skip()
+		event:Skip()
 	end )
 	
 	UI.frame:Connect( wx.wxEVT_TIMER, function(event)
-	--implements OnTimerEvent
+		--implements OnTimerEvent
 		if UI.timer ~= nil then UI.timer:Stop() end
 		MillWizard.OnTimer()
 		if UI.timer ~= nil then UI.timer:Start() end
@@ -509,13 +515,13 @@ function MillWizard._CreateBoltHolePanel(UI)
 	UI.boltHoleSizer:Add( UI.boltHoleFirstPosBtn, wx.wxGBPosition( 6, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.boltHoleCountText = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "3. Set Hole Count", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.circleRadiusPocketStepText, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltHoleSizer:Add( UI.boltHoleCountText, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
-	UI.boltHoleCount = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "0.1000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.boltHoleCount = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "5", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
 	UI.boltHoleSizer:Add( UI.boltHoleCount, wx.wxGBPosition( 8, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
-	UI.boltHoleCountText = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "holes", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleCountText, wx.wxGBPosition( 9, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.boltHoleCountTextLabel = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "holes", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.boltHoleSizer:Add( UI.boltHoleCountTextLabel, wx.wxGBPosition( 9, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 
 	UI.boltHoleNextHole = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "4. Go to Next Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 	UI.boltHoleSizer:Add( UI.boltHoleNextHole, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
@@ -612,8 +618,227 @@ function MillWizard._CreateBoltHolePanel(UI)
 		local xpos = hole_positions[idx].X
 		local ypos = hole_positions[idx].Y
 		MillWizard.GoToCenter(xpos, ypos, xpos, ypos)
+	event:Skip()
+	end )
 
+	return UI
+end
 
+function MillWizard.CreateBoltLinePanel(UI)
+	local is_ok, err = pcall(MillWizard._CreateBoltLinePanel, UI)
+	if not is_ok then
+		MillWizard.Log(string.format("Error creating bolt line panel: %s", err))
+		return UI
+	else
+		return err
+	end
+end
+
+function MillWizard._CreateBoltLinePanel(UI)
+	UI.boltLinePanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Bolt Line", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	
+	UI.boltLineSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.boltLineSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.boltLineSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	
+	UI.boltLineFirst = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "1. Teach First Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.boltLineSizer:Add( UI.boltLineFirst, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.boltLineFirst_X = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.boltLineSizer:Add( UI.boltLineFirst_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.boltLineFirst_Y = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.boltLineSizer:Add( UI.boltLineFirst_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.boltLineFirstBtn = MillWizard.GetButton(UI.boltLinePanel:GetPane(), "Teach First Hole")
+	UI.boltLineSizer:Add( UI.boltLineFirstBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+
+	UI.boltLineLast = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "2. Teach Last Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.boltLineSizer:Add( UI.boltLineLast, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.boltLineLast_X = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.boltLineSizer:Add( UI.boltLineLast_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.boltLineLast_Y = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.boltLineSizer:Add( UI.boltLineLast_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.boltLineLastBtn = MillWizard.GetButton(UI.boltLinePanel:GetPane(), "Teach Last Hole")
+	UI.boltLineSizer:Add( UI.boltLineLastBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+
+	UI.boltLineCountText = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "3. Set Hole Count", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.boltLineSizer:Add( UI.boltLineCountText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.boltLineCount = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "3", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.boltLineSizer:Add( UI.boltLineCount, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.boltLineCountTextLabel = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "holes", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.boltLineSizer:Add( UI.boltLineCountTextLabel, wx.wxGBPosition( 8, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+
+	UI.boltLineNextHole = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "4. Go to Next Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.boltLineSizer:Add( UI.boltLineNextHole, wx.wxGBPosition( 9, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.boltLineNextHoleBtn = MillWizard.GetStartButton(UI.boltLinePanel:GetPane(), "Bolt Line Circle", "Next Hole")
+	UI.boltLineSizer:Add( UI.boltLineNextHoleBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.boltLinePanel:GetPane():SetSizer( UI.boltLineSizer )
+	UI.boltLinePanel:Layout()
+	UI.boltLineSizer:Fit( UI.boltLinePanel )
+	
+	UI.panel_sizer:Add( UI.boltLinePanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
+
+	UI.boltLinePanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
+		MillWizard.OnPanelChanged(event)
+		event:Skip()
+	end )
+	
+	UI.boltHoleCount:Connect( wx.wxEVT_COMMAND_TEXT_ENTER, function(event)
+		--implements onenter
+		local val = tonumber(UI.boltHoleCount:GetValue())
+		if math.abs(val) < 1 then val = 1 end
+		UI.boltHoleCount:SetValue(tostring(math.floor(math.abs(val))))
+		event:Skip()
+	end )
+	
+	UI.boltHoleCount:Connect( wx.wxEVT_KILL_FOCUS, function(event)
+		--implements killfocus
+		local val = tonumber(UI.boltHoleCount:GetValue())
+		if math.abs(val) < 1 then val = 1 end
+		UI.boltHoleCount:SetValue(tostring(math.floor(math.abs(val))))
+		event:Skip()
+	end )
+	
+	UI.boltLineFirstBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.boltLineFirst_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.boltLineFirst_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+		event:Skip()
+	end )
+
+	UI.boltLineLastBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.boltLineLast_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.boltLineLast_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+		event:Skip()
+	end )
+
+	UI.boltLineNextHoleBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		MillWizard.Log("Bolt Hole Line Next Hole Pressed")
+	
+		local current_x = tonumber(string.format("%0.6f", MillWizard.GetXPartPos()))
+		local current_y = tonumber(string.format("%0.6f", MillWizard.GetYPartPos()))
+
+		local first_x = tonumber(UI.boltLineFirst_X:GetValue())
+		local first_y = tonumber(UI.boltLineFirst_Y:GetValue())
+		local last_x = tonumber(UI.boltLineLast_X:GetValue())
+		local last_y = tonumber(UI.boltLineLast_Y:GetValue())
+		local hole_count = tonumber(UI.boltHoleCount:GetValue())
+
+		if hole_count == 1 then
+			-- go to first hole position
+			MillWizard.GoToCenter(first_x, first_y, first_x, first_y)
+		elseif hole_count > 1 then
+			local distance = math.sqrt(math.pow(first_x - last_x, 2) + math.pow(first_y - last_y, 2))
+			local spacing = distance / (hole_count - 1)
+
+			local x_spacing = math.abs(first_x - last_x) / (hole_count - 1)
+			if last_x < first_x then x_spacing = -x_spacing end
+			
+			local y_spacing = math.abs(first_y - last_y) / (hole_count - 1)
+			if last_y < first_y then y_spacing = -y_spacing end
+
+			local hole_positions = {}
+			for i = 0, hole_count - 1 do
+				local xpos = tonumber(string.format("%0.6f", first_x + (x_spacing * i)))
+				local ypos = tonumber(string.format("%0.6f", first_y + (y_spacing * i)))
+				table.insert(hole_positions, { ['X'] = xpos, ['Y'] = ypos })
+
+				local dist = math.sqrt(math.pow(current_x - xpos, 2) + math.pow(current_y - ypos, 2))
+				if dist < min_dist or idx == 0 then
+					idx = i
+					min_dist = dist
+				end
+			end
+
+			if min_dist == 0 then
+				idx = idx + 1
+				if idx > hole_count then idx = 1 end
+			end
+
+			local xpos = hole_positions[idx].X
+			local ypos = hole_positions[idx].Y
+			MillWizard.GoToCenter(xpos, ypos, xpos, ypos)
+		end
+		event:Skip()
+	end )
+
+	return UI
+end
+
+function MillWizard.CreatePerimeterMillPanel(UI)
+	local is_ok, err = pcall(MillWizard._CreatePerimeterMillPanel, UI)
+	if not is_ok then
+		MillWizard.Log(string.format("Error creating perimeter mill panel: %s", err))
+		return UI
+	else
+		return err
+	end
+end
+
+function MillWizard._CreatePerimeterMillPanel(UI)
+	UI.perimeterPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Surfacing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	
+	UI.perimeterSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.perimeterSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.perimeterSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	
+	UI.perimeterPosA = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.perimeterSizer:Add( UI.perimeterPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.perimeterPosA_X = wx.wxTextCtrl( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.perimeterSizer:Add( UI.perimeterPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.perimeterPosA_Y = wx.wxTextCtrl( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.perimeterSizer:Add( UI.perimeterPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	
+	UI.perimeterPosABtn = MillWizard.GetButton(UI.perimeterPanel:GetPane(), "Teach Position A")
+	UI.perimeterSizer:Add( UI.perimeterPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.perimeterPosB = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "2. Go to Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.perimeterSizer:Add( UI.perimeterPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+
+	UI.perimeterStartSpindle = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "4. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.perimeterSizer:Add( UI.perimeterStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.perimeterLowerZ = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "5. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.perimeterSizer:Add( UI.perimeterLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.perimeterStartCycle = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "6. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.perimeterSizer:Add( UI.perimeterStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	
+	UI.perimeterStartBtn = MillWizard.GetStartButton(UI.perimeterPanel:GetPane(), "Perimeter Mill")
+	UI.perimeterSizer:Add( UI.perimeterStartBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.perimeterPanel:GetPane():SetSizer( UI.perimeterSizer )
+	UI.perimeterPanel:Layout()
+	UI.perimeterSizer:Fit( UI.perimeterPanel )
+	
+	UI.panel_sizer:Add( UI.perimeterPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
+
+	UI.perimeterPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
+		MillWizard.OnPanelChanged(event)
+		event:Skip()
+	end )
+
+	UI.perimeterPosABtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		UI.perimeterPosA_X:SetValue(string.format("%0.4f", MillWizard.GetXPartPos()))
+		UI.perimeterPosA_Y:SetValue(string.format("%0.4f", MillWizard.GetYPartPos()))
+	event:Skip()
+	end )
+	
+	UI.perimeterStartBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
+		MillWizard.Log("Perimeter Start Cycle Pressed")
+	
+		local xpos = tonumber(UI.perimeterPosA_X:GetValue())
+		local ypos = tonumber(UI.perimeterPosA_Y:GetValue())
+		MillWizard.PerimeterRoutine(xpos, ypos, MillWizard.GetXPartPos(), MillWizard.GetYPartPos())
 	event:Skip()
 	end )
 
@@ -844,6 +1069,22 @@ function MillWizard._CirclePocketingRoutine(center_x, center_y, radius, step)
 	-- go back to center
 	gcode = string.format("%sG00 X%0.6f Y%0.6f\n", gcode, center_x, center_y)
 	MillWizard.RunGcode(gcode, "Error running circle pocketing code")
+end
+
+function MillWizard.PerimeterRoutine(posA_x, posA_y, posB_x, posB_y)
+	local is_ok, err = pcall(MillWizard._PerimeterRoutine, posA_x, posA_y, posB_x, posB_y)
+	if not is_ok then
+		MillWizard.Log(string.format("Error running perimeter routine: %s", err))
+	end
+end
+
+function MillWizard._PerimeterRoutine(posA_x, posA_y, posB_x, posB_y)
+	local gcode = "G90\n"
+	gcode = string.format("%sG01 X%0.6f Y%0.6f\n", gcode, posB_x, posA_y)
+	gcode = string.format("%sG01 X%0.6f Y%0.6f\n", gcode, posA_x, posA_y)
+	gcode = string.format("%sG01 X%0.6f Y%0.6f\n", gcode, posA_x, posB_y)
+	gcode = string.format("%sG01 X%0.6f Y%0.6f\n", gcode, posB_x, posB_y)
+	MillWizard.RunGcode(gcode, "Error running perimeter code")
 end
 
 function MillWizard.GoToCenter(Ax, Ay, Bx, By)
