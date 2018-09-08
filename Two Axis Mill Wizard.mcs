@@ -478,7 +478,7 @@ function MillWizard.CreateBoltHolePanel(UI)
 end
 
 function MillWizard._CreateBoltHolePanel(UI)
-	UI.boltHolePanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Bolt Hole", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	UI.boltHolePanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Bolt Circle", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
 	UI.boltHoleSizer = wx.wxGridBagSizer( 0, 0 )
 	UI.boltHoleSizer:SetFlexibleDirection( wx.wxBOTH )
@@ -505,10 +505,10 @@ function MillWizard._CreateBoltHolePanel(UI)
 	UI.boltHoleAngle = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "degrees", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 	UI.boltHoleSizer:Add( UI.boltHoleAngle, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
-	UI.boltHoleRadiusDRO = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "4.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltHoleSizer:Add( UI.boltHoleRadiusDRO, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltHoleDiameterDRO = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "4.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
+	UI.boltHoleSizer:Add( UI.boltHoleDiameterDRO, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 
-	UI.boltHoleRadius = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
+	UI.boltHoleRadius = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "inches (Diameter)", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 	UI.boltHoleSizer:Add( UI.boltHoleRadius, wx.wxGBPosition( 5, 2 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
 	UI.boltHoleFirstPosBtn = MillWizard.GetButton(UI.boltHolePanel:GetPane(), "Teach First Position")
@@ -521,13 +521,13 @@ function MillWizard._CreateBoltHolePanel(UI)
 	UI.boltHoleSizer:Add( UI.boltHoleCount, wx.wxGBPosition( 8, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltHoleCountTextLabel = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "holes", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleCountTextLabel, wx.wxGBPosition( 9, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.boltHoleSizer:Add( UI.boltHoleCountTextLabel, wx.wxGBPosition( 8, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 
 	UI.boltHoleNextHole = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "4. Go to Next Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleNextHole, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltHoleSizer:Add( UI.boltHoleNextHole, wx.wxGBPosition( 9, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltHoleNextHoleBtn = MillWizard.GetStartButton(UI.boltHolePanel:GetPane(), "Bolt Hole Circle", "Next Hole")
-	UI.boltHoleSizer:Add( UI.boltHoleNextHoleBtn, wx.wxGBPosition( 11, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltHoleSizer:Add( UI.boltHoleNextHoleBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.boltHolePanel:GetPane():SetSizer( UI.boltHoleSizer )
 	UI.boltHolePanel:Layout()
@@ -574,12 +574,12 @@ function MillWizard._CreateBoltHolePanel(UI)
 		local angle = math.deg(math.atan(y_dist, x_dist))
 
 		UI.boltHoleAngleDRO:SetValue(string.format("%0.4f", angle))
-		UI.boltHoleRadiusDRO:SetValue(string.format("%0.4f", radius))
+		UI.boltHoleDiameterDRO:SetValue(string.format("%0.4f", radius * 2))
 	event:Skip()
 	end )
 
 	UI.boltHoleNextHoleBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
-		MillWizard.Log("Bolt Hole Circle Next Hole Pressed")
+		MillWizard.Log("Bolt Circle Next Hole Pressed")
 	
 		local current_x = tonumber(string.format("%0.6f", MillWizard.GetXPartPos()))
 		local current_y = tonumber(string.format("%0.6f", MillWizard.GetYPartPos()))
@@ -587,27 +587,28 @@ function MillWizard._CreateBoltHolePanel(UI)
 		local center_x = tonumber(UI.boltHoleCenter_X:GetValue())
 		local center_y = tonumber(UI.boltHoleCenter_Y:GetValue())
 		local angle = tonumber(UI.boltHoleAngleDRO:GetValue())
-		local radius = tonumber(UI.boltHoleRadiusDRO:GetValue())
+		local radius = tonumber(UI.boltHoleDiameterDRO:GetValue()) / 2
 		local hole_count = tonumber(UI.boltHoleCount:GetValue())
 		local inc_angle = 360 / hole_count
-
+		
 		local idx = 0
 		local min_dist = 0
 
 		local hole_positions = {}
-		for i = 1, hole_count do
-			angle = angle + inc_angle
-			local xpos = math.cos(math.rad(angle)) * radius
-			local ypos = math.cos(math.rad(angle)) * radius
+		for i = 0, hole_count - 1 do
+			local xpos = (math.cos(math.rad(angle)) * radius) + center_x
+			local ypos = (math.sin(math.rad(angle)) * radius) + center_y
 			xpos = tonumber(string.format("%0.6f", xpos))
 			ypos = tonumber(string.format("%0.6f", ypos))
 			table.insert(hole_positions, { ['X'] = xpos, ['Y'] = ypos })
 
 			local dist = math.sqrt(math.pow(current_x - xpos, 2) + math.pow(current_y - ypos, 2))
-			if dist < min_dist or idx == 0 then
-				idx = i
+			if i == 0 or dist < min_dist then
+				idx = i + 1
 				min_dist = dist
 			end
+			
+			angle = angle + inc_angle
 		end
 
 		if min_dist == 0 then
@@ -672,13 +673,13 @@ function MillWizard._CreateBoltLinePanel(UI)
 	UI.boltLineSizer:Add( UI.boltLineCount, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltLineCountTextLabel = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "holes", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltLineSizer:Add( UI.boltLineCountTextLabel, wx.wxGBPosition( 8, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.boltLineSizer:Add( UI.boltLineCountTextLabel, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 
 	UI.boltLineNextHole = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "4. Go to Next Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltLineSizer:Add( UI.boltLineNextHole, wx.wxGBPosition( 9, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltLineSizer:Add( UI.boltLineNextHole, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltLineNextHoleBtn = MillWizard.GetStartButton(UI.boltLinePanel:GetPane(), "Bolt Hole Line", "Next Hole")
-	UI.boltLineSizer:Add( UI.boltLineNextHoleBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltLineSizer:Add( UI.boltLineNextHoleBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.boltLinePanel:GetPane():SetSizer( UI.boltLineSizer )
 	UI.boltLinePanel:Layout()
@@ -720,7 +721,7 @@ function MillWizard._CreateBoltLinePanel(UI)
 	end )
 
 	UI.boltLineNextHoleBtn:Connect( wx.wxEVT_COMMAND_BUTTON_CLICKED, function(event)
-		MillWizard.Log("Bolt Hole Line Next Hole Pressed")
+		MillWizard.Log("Bolt Line Next Hole Pressed")
 	
 		local current_x = tonumber(string.format("%0.6f", MillWizard.GetXPartPos()))
 		local current_y = tonumber(string.format("%0.6f", MillWizard.GetYPartPos()))
@@ -729,7 +730,7 @@ function MillWizard._CreateBoltLinePanel(UI)
 		local first_y = tonumber(UI.boltLineFirst_Y:GetValue())
 		local last_x = tonumber(UI.boltLineLast_X:GetValue())
 		local last_y = tonumber(UI.boltLineLast_Y:GetValue())
-		local hole_count = tonumber(UI.boltHoleCount:GetValue())
+		local hole_count = tonumber(UI.boltLineCount:GetValue())
 
 		if hole_count == 1 then
 			-- go to first hole position
@@ -744,6 +745,8 @@ function MillWizard._CreateBoltLinePanel(UI)
 			local y_spacing = math.abs(first_y - last_y) / (hole_count - 1)
 			if last_y < first_y then y_spacing = -y_spacing end
 
+			local min_dist = 0
+			
 			local hole_positions = {}
 			for i = 0, hole_count - 1 do
 				local xpos = tonumber(string.format("%0.6f", first_x + (x_spacing * i)))
@@ -751,8 +754,8 @@ function MillWizard._CreateBoltLinePanel(UI)
 				table.insert(hole_positions, { ['X'] = xpos, ['Y'] = ypos })
 
 				local dist = math.sqrt(math.pow(current_x - xpos, 2) + math.pow(current_y - ypos, 2))
-				if dist < min_dist or idx == 0 then
-					idx = i
+				if i == 0 or dist < min_dist then
+					idx = i + 1
 					min_dist = dist
 				end
 			end
@@ -762,6 +765,7 @@ function MillWizard._CreateBoltLinePanel(UI)
 				if idx > hole_count then idx = 1 end
 			end
 
+	
 			local xpos = hole_positions[idx].X
 			local ypos = hole_positions[idx].Y
 			MillWizard.GoToCenter(xpos, ypos, xpos, ypos)
@@ -783,7 +787,7 @@ function MillWizard.CreatePerimeterMillPanel(UI)
 end
 
 function MillWizard._CreatePerimeterMillPanel(UI)
-	UI.perimeterPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Surfacing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
+	UI.perimeterPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Perimeter", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
 	UI.perimeterSizer = wx.wxGridBagSizer( 0, 0 )
 	UI.perimeterSizer:SetFlexibleDirection( wx.wxBOTH )
@@ -898,7 +902,7 @@ function MillWizard._CreateLineMillPanel(UI)
 	UI.lineMillABtn = MillWizard.GetStartButton(UI.lineMillPanel:GetPane(), "Line Mill", "Go to A")
 	UI.lineMillSizer:Add( UI.lineMillABtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
-	UI.lineMillBBtn = MillWizard.GetStartButton(UI.lineMillPanel:GetPane(), "Line Mill", "Go to A")
+	UI.lineMillBBtn = MillWizard.GetStartButton(UI.lineMillPanel:GetPane(), "Line Mill", "Go to B")
 	UI.lineMillSizer:Add( UI.lineMillBBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.lineMillPanel:GetPane():SetSizer( UI.lineMillSizer )
@@ -1229,7 +1233,7 @@ end
 
 function MillWizard.GetPCIDLicensedFor()
 	-- return ""
-	return "MCH-648A6C58-34F9-AB9D-8EC4-1837A786301D"
+	return "MCH-3191F1B0-D501-E5BA-38A3-504227A4DCC1"
 end
 
 MillWizard.CreateFrame()
