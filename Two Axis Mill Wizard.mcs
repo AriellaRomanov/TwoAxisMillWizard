@@ -78,12 +78,17 @@ function MillWizard._CreateFrame()
 		event:Skip()
 	end )
 	
+	
 	local size = UI.frame:GetSize()
 	local width = size:GetWidth()
 	local height = size:GetHeight()
-	if width < 600 then width = 600 end
-	if height < 400 then height = 400 end
+	
+	local min_width = 1000
+	local min_height = 750
+	if width < min_width then width = min_width end
+	if height < min_height then height = min_height end
 	UI.frame:SetMinSize(wx.wxSize(width, height))
+	MillWizard.frame_size = wx.wxSize(min_width, min_height)
 
 	UI.frame:Centre( wx.wxBOTH )
 	UI.frame:Show()
@@ -107,8 +112,10 @@ function MillWizard.OnTimer()
 	end
 end
 
-function MillWizard.OnPanelChanged(event)
-	UI.scroll_panel:Layout()
+function MillWizard.OnPanelChanged(panel, event)
+	UI.frame:SetClientSize(MillWizard.frame_size)
+
+	-- UI.frame:SetClientSize(panel:GetBestVirtualSize())
 end
 
 function MillWizard.CreateSurfacingPanel(UI)
@@ -124,45 +131,49 @@ end
 function MillWizard._CreateSurfacingPanel(UI)
 	UI.surfacingPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Surfacing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
-	UI.surfacingSizer = wx.wxGridBagSizer( 0, 0 )
-	UI.surfacingSizer:SetFlexibleDirection( wx.wxBOTH )
-	UI.surfacingSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	UI.surfacingSizer = wx.wxBoxSizer(wx.wxHORIZONTAL)
+	
+	UI.surfacingGridSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.surfacingGridSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.surfacingGridSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
 	UI.surfacingPosA = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.surfacingPosA_X = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.surfacingSizer:Add( UI.surfacingPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.surfacingPosA_Y = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.surfacingSizer:Add( UI.surfacingPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.surfacingPosABtn = MillWizard.GetButton(UI.surfacingPanel:GetPane(), "Teach Position A")
-	UI.surfacingSizer:Add( UI.surfacingPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.surfacingPosB = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "2. Go to Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.surfacingStepText = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "3. Set Step-over Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingStepText, wx.wxGBPosition( 4, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingStepText, wx.wxGBPosition( 4, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.surfacingStepOver = wx.wxTextCtrl( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "0.1000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.surfacingSizer:Add( UI.surfacingStepOver, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingStepOver, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.surfacingUnitsText = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingUnitsText, wx.wxGBPosition( 5, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingUnitsText, wx.wxGBPosition( 5, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
 	UI.surfacingStartSpindle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "4. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.surfacingLowerZ = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "5. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.surfacingStartCycle = wx.wxStaticText( UI.surfacingPanel:GetPane(), wx.wxID_ANY, "6. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.surfacingSizer:Add( UI.surfacingStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.surfacingStartBtn = MillWizard.GetStartButton(UI.surfacingPanel:GetPane(), "Surfacing")
-	UI.surfacingSizer:Add( UI.surfacingStartBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.surfacingGridSizer:Add( UI.surfacingStartBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.surfacingSizer:Add(UI.surfacingGridSizer, 0, wx.wxALL, 5)
 	
 	UI.surfacingPanel:GetPane():SetSizer( UI.surfacingSizer )
 	UI.surfacingPanel:Layout()
@@ -171,7 +182,7 @@ function MillWizard._CreateSurfacingPanel(UI)
 	UI.panel_sizer:Add( UI.surfacingPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
 	UI.surfacingPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
-		MillWizard.OnPanelChanged(event)
+		MillWizard.OnPanelChanged(UI.surfacingPanel, event)
 		event:Skip()
 	end )
 	
@@ -221,60 +232,64 @@ end
 function MillWizard._CreateSquarePocketingPanel(UI)
 	UI.squarePocketPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Square Pocketing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
-	UI.squarePocketSizer = wx.wxGridBagSizer( 0, 0 )
-	UI.squarePocketSizer:SetFlexibleDirection( wx.wxBOTH )
-	UI.squarePocketSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	UI.squarePocketSizer = wx.wxBoxSizer(wx.wxHORIZONTAL)
+	
+	UI.squarePocketGridSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.squarePocketGridSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.squarePocketGridSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
 	UI.squarePocketPosA = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketPosA_X = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.squarePocketSizer:Add( UI.squarePocketPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.squarePocketPosA_Y = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.squarePocketSizer:Add( UI.squarePocketPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.squarePocketPosABtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Teach Position A")
-	UI.squarePocketSizer:Add( UI.squarePocketPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.squarePocketPosB = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "2. Teach Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketPosB_X = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.squarePocketSizer:Add( UI.squarePocketPosB_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosB_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.squarePocketPosB_Y = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.squarePocketSizer:Add( UI.squarePocketPosB_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosB_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.squarePocketPosBBtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Teach Position B")
-	UI.squarePocketSizer:Add( UI.squarePocketPosBBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketPosBBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.squarePocketStepText = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "3. Set Step Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketStepText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketStepText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketStepIn = wx.wxTextCtrl( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "0.1000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.squarePocketSizer:Add( UI.squarePocketStepIn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketStepIn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.squarePocketUnitsText = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketUnitsText, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketUnitsText, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
 	UI.squarePocketGoToCenter = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "4. Go to Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketGoToCenter, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketGoToCenter, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketGoToCenterBtn = MillWizard.GetButton(UI.squarePocketPanel:GetPane(), "Go to Center")
-	UI.squarePocketSizer:Add( UI.squarePocketGoToCenterBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketGoToCenterBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.squarePocketStartSpindle = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "5. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketStartSpindle, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketStartSpindle, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketLowerZ = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "6. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketLowerZ, wx.wxGBPosition( 11, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketLowerZ, wx.wxGBPosition( 11, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketStartCycle = wx.wxStaticText( UI.squarePocketPanel:GetPane(), wx.wxID_ANY, "7. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.squarePocketSizer:Add( UI.squarePocketStartCycle, wx.wxGBPosition( 12, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketStartCycle, wx.wxGBPosition( 12, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.squarePocketStartBtn = MillWizard.GetStartButton(UI.squarePocketPanel:GetPane(), "Square Pocketing")
-	UI.squarePocketSizer:Add( UI.squarePocketStartBtn, wx.wxGBPosition( 13, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.squarePocketGridSizer:Add( UI.squarePocketStartBtn, wx.wxGBPosition( 13, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.squarePocketSizer:Add(UI.squarePocketGridSizer, 0, wx.wxALL, 5)
 	
 	UI.squarePocketPanel:GetPane():SetSizer( UI.squarePocketSizer )
 	UI.squarePocketPanel:Layout()
@@ -283,7 +298,7 @@ function MillWizard._CreateSquarePocketingPanel(UI)
 	UI.panel_sizer:Add( UI.squarePocketPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
 	UI.squarePocketPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
-		MillWizard.OnPanelChanged(event)
+		MillWizard.OnPanelChanged(UI.squarePocketPanel, event)
 		event:Skip()
 	end )
 	
@@ -351,57 +366,61 @@ end
 function MillWizard._CreateCircleRadiusPocketingPanel(UI)
 	UI.circleRadiusPocketPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Circle (Radius) Pocketing", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
-	UI.circleRadiusPocketSizer = wx.wxGridBagSizer( 0, 0 )
-	UI.circleRadiusPocketSizer:SetFlexibleDirection( wx.wxBOTH )
-	UI.circleRadiusPocketSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	UI.circleRadiusPocketSizer = wx.wxBoxSizer(wx.wxHORIZONTAL)
+	
+	UI.circleRadiusPocketGridSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.circleRadiusPocketGridSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.circleRadiusPocketGridSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
 	UI.circleRadiusPocketCenter = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "1. Teach Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenter, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketCenter, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketCenter_X = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenter_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketCenter_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketCenter_Y = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenter_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketCenter_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketCenterBtn = MillWizard.GetButton(UI.circleRadiusPocketPanel:GetPane(), "Teach Center")
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketCenterBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketCenterBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.circleRadiusPocketRadius = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "2. Teach Radius", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketRadius, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketRadius, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketRadiusDRO = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketRadiusDRO, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketRadiusDRO, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 
 	UI.circleRadiusPocketRadiusBtn = MillWizard.GetButton(UI.circleRadiusPocketPanel:GetPane(), "Teach Radius")
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketRadiusBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketRadiusBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.circleRadiusPocketStepText = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "3. Set Step Amount", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStepText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketStepText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketStepIn = wx.wxTextCtrl( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "0.1000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStepIn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketStepIn, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketUnitsText = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "inches", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketUnitsText, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketUnitsText, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
 	UI.circleRadiusPocketGoToCenter = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "4. Go to Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketGoToCenter, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketGoToCenter, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketGoToCenterBtn = MillWizard.GetButton(UI.circleRadiusPocketPanel:GetPane(), "Go to Center")
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketGoToCenterBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketGoToCenterBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.circleRadiusPocketStartSpindle = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "5. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStartSpindle, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketStartSpindle, wx.wxGBPosition( 10, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketLowerZ = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "6. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketLowerZ, wx.wxGBPosition( 11, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketLowerZ, wx.wxGBPosition( 11, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketStartCycle = wx.wxStaticText( UI.circleRadiusPocketPanel:GetPane(), wx.wxID_ANY, "7. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStartCycle, wx.wxGBPosition( 12, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketStartCycle, wx.wxGBPosition( 12, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.circleRadiusPocketStartBtn = MillWizard.GetStartButton(UI.circleRadiusPocketPanel:GetPane(), "Circle (Radius) Pocketing")
-	UI.circleRadiusPocketSizer:Add( UI.circleRadiusPocketStartBtn, wx.wxGBPosition( 13, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.circleRadiusPocketGridSizer:Add( UI.circleRadiusPocketStartBtn, wx.wxGBPosition( 13, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.circleRadiusPocketSizer:Add(UI.circleRadiusPocketGridSizer, 0, wx.wxALL, 5)
 	
 	UI.circleRadiusPocketPanel:GetPane():SetSizer( UI.circleRadiusPocketSizer )
 	UI.circleRadiusPocketPanel:Layout()
@@ -410,7 +429,7 @@ function MillWizard._CreateCircleRadiusPocketingPanel(UI)
 	UI.panel_sizer:Add( UI.circleRadiusPocketPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
 	UI.circleRadiusPocketPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
-		MillWizard.OnPanelChanged(event)
+		MillWizard.OnPanelChanged(UI.circleRadiusPocketPanel, event)
 		event:Skip()
 	end )
 	
@@ -480,54 +499,58 @@ end
 function MillWizard._CreateBoltHolePanel(UI)
 	UI.boltHolePanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Bolt Circle", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
-	UI.boltHoleSizer = wx.wxGridBagSizer( 0, 0 )
-	UI.boltHoleSizer:SetFlexibleDirection( wx.wxBOTH )
-	UI.boltHoleSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	UI.boltHoleSizer = wx.wxBoxSizer(wx.wxHORIZONTAL)
+	
+	UI.boltHoleGridSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.boltHoleGridSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.boltHoleGridSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
 	UI.boltHoleCenter = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "1. Teach Center", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleCenter, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleCenter, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltHoleCenter_X = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltHoleSizer:Add( UI.boltHoleCenter_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleCenter_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltHoleCenter_Y = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltHoleSizer:Add( UI.boltHoleCenter_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleCenter_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltHoleCenterBtn = MillWizard.GetButton(UI.boltHolePanel:GetPane(), "Teach Center")
-	UI.boltHoleSizer:Add( UI.boltHoleCenterBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleCenterBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.boltHoleFirstPos = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "2. Teach First Position", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleFirstPos, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleFirstPos, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltHoleAngleDRO = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltHoleSizer:Add( UI.boltHoleAngleDRO, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleAngleDRO, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 
 	UI.boltHoleAngle = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "degrees", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleAngle, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleAngle, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
 	UI.boltHoleDiameterDRO = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "4.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltHoleSizer:Add( UI.boltHoleDiameterDRO, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleDiameterDRO, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 
 	UI.boltHoleRadius = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "inches (Diameter)", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleRadius, wx.wxGBPosition( 5, 2 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleRadius, wx.wxGBPosition( 5, 2 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 	
 	UI.boltHoleFirstPosBtn = MillWizard.GetButton(UI.boltHolePanel:GetPane(), "Teach First Position")
-	UI.boltHoleSizer:Add( UI.boltHoleFirstPosBtn, wx.wxGBPosition( 6, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleFirstPosBtn, wx.wxGBPosition( 6, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.boltHoleCountText = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "3. Set Hole Count", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleCountText, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleCountText, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltHoleCount = wx.wxTextCtrl( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "5", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltHoleSizer:Add( UI.boltHoleCount, wx.wxGBPosition( 8, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleCount, wx.wxGBPosition( 8, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltHoleCountTextLabel = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "holes", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleCountTextLabel, wx.wxGBPosition( 8, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleCountTextLabel, wx.wxGBPosition( 8, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 
 	UI.boltHoleNextHole = wx.wxStaticText( UI.boltHolePanel:GetPane(), wx.wxID_ANY, "4. Go to Next Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltHoleSizer:Add( UI.boltHoleNextHole, wx.wxGBPosition( 9, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleNextHole, wx.wxGBPosition( 9, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltHoleNextHoleBtn = MillWizard.GetStartButton(UI.boltHolePanel:GetPane(), "Bolt Hole Circle", "Next Hole")
-	UI.boltHoleSizer:Add( UI.boltHoleNextHoleBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltHoleGridSizer:Add( UI.boltHoleNextHoleBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.boltHoleSizer:Add(UI.boltHoleGridSizer, 0, wx.wxALL, 5)
 	
 	UI.boltHolePanel:GetPane():SetSizer( UI.boltHoleSizer )
 	UI.boltHolePanel:Layout()
@@ -536,7 +559,7 @@ function MillWizard._CreateBoltHolePanel(UI)
 	UI.panel_sizer:Add( UI.boltHolePanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
 	UI.boltHolePanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
-		MillWizard.OnPanelChanged(event)
+		MillWizard.OnPanelChanged(UI.boltHolePanel, event)
 		event:Skip()
 	end )
 	
@@ -638,48 +661,52 @@ end
 function MillWizard._CreateBoltLinePanel(UI)
 	UI.boltLinePanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Bolt Line", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
-	UI.boltLineSizer = wx.wxGridBagSizer( 0, 0 )
-	UI.boltLineSizer:SetFlexibleDirection( wx.wxBOTH )
-	UI.boltLineSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	UI.boltLineSizer = wx.wxBoxSizer(wx.wxHORIZONTAL)
+	
+	UI.boltLineGridSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.boltLineGridSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.boltLineGridSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
 	UI.boltLineFirst = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "1. Teach First Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltLineSizer:Add( UI.boltLineFirst, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineFirst, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltLineFirst_X = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltLineSizer:Add( UI.boltLineFirst_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineFirst_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltLineFirst_Y = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltLineSizer:Add( UI.boltLineFirst_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineFirst_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltLineFirstBtn = MillWizard.GetButton(UI.boltLinePanel:GetPane(), "Teach First Hole")
-	UI.boltLineSizer:Add( UI.boltLineFirstBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineFirstBtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.boltLineLast = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "2. Teach Last Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltLineSizer:Add( UI.boltLineLast, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineLast, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltLineLast_X = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltLineSizer:Add( UI.boltLineLast_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineLast_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltLineLast_Y = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltLineSizer:Add( UI.boltLineLast_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineLast_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltLineLastBtn = MillWizard.GetButton(UI.boltLinePanel:GetPane(), "Teach Last Hole")
-	UI.boltLineSizer:Add( UI.boltLineLastBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineLastBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.boltLineCountText = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "3. Set Hole Count", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltLineSizer:Add( UI.boltLineCountText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineCountText, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltLineCount = wx.wxTextCtrl( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "3", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.boltLineSizer:Add( UI.boltLineCount, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineCount, wx.wxGBPosition( 7, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.boltLineCountTextLabel = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "holes", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltLineSizer:Add( UI.boltLineCountTextLabel, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineCountTextLabel, wx.wxGBPosition( 7, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxTOP + wx.wxBOTTOM + wx.wxRIGHT, 5 )
 
 	UI.boltLineNextHole = wx.wxStaticText( UI.boltLinePanel:GetPane(), wx.wxID_ANY, "4. Go to Next Hole", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.boltLineSizer:Add( UI.boltLineNextHole, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineNextHole, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.boltLineNextHoleBtn = MillWizard.GetStartButton(UI.boltLinePanel:GetPane(), "Bolt Hole Line", "Next Hole")
-	UI.boltLineSizer:Add( UI.boltLineNextHoleBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.boltLineGridSizer:Add( UI.boltLineNextHoleBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.boltLineSizer:Add(UI.boltLineGridSizer, 0, wx.wxALL, 5)
 	
 	UI.boltLinePanel:GetPane():SetSizer( UI.boltLineSizer )
 	UI.boltLinePanel:Layout()
@@ -688,7 +715,7 @@ function MillWizard._CreateBoltLinePanel(UI)
 	UI.panel_sizer:Add( UI.boltLinePanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
 	UI.boltLinePanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
-		MillWizard.OnPanelChanged(event)
+		MillWizard.OnPanelChanged(UI.boltLinePanel, event)
 		event:Skip()
 	end )
 	
@@ -789,36 +816,40 @@ end
 function MillWizard._CreatePerimeterMillPanel(UI)
 	UI.perimeterPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Perimeter", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
-	UI.perimeterSizer = wx.wxGridBagSizer( 0, 0 )
-	UI.perimeterSizer:SetFlexibleDirection( wx.wxBOTH )
-	UI.perimeterSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	UI.perimeterSizer = wx.wxBoxSizer(wx.wxHORIZONTAL)
+	
+	UI.perimeterGridSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.perimeterGridSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.perimeterGridSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
 	UI.perimeterPosA = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.perimeterSizer:Add( UI.perimeterPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.perimeterPosA_X = wx.wxTextCtrl( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.perimeterSizer:Add( UI.perimeterPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.perimeterPosA_Y = wx.wxTextCtrl( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.perimeterSizer:Add( UI.perimeterPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.perimeterPosABtn = MillWizard.GetButton(UI.perimeterPanel:GetPane(), "Teach Position A")
-	UI.perimeterSizer:Add( UI.perimeterPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.perimeterPosB = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "2. Go to Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.perimeterSizer:Add( UI.perimeterPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 
 	UI.perimeterStartSpindle = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "4. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.perimeterSizer:Add( UI.perimeterStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.perimeterLowerZ = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "5. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.perimeterSizer:Add( UI.perimeterLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.perimeterStartCycle = wx.wxStaticText( UI.perimeterPanel:GetPane(), wx.wxID_ANY, "6. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.perimeterSizer:Add( UI.perimeterStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.perimeterStartBtn = MillWizard.GetStartButton(UI.perimeterPanel:GetPane(), "Perimeter Mill")
-	UI.perimeterSizer:Add( UI.perimeterStartBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.perimeterGridSizer:Add( UI.perimeterStartBtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.perimeterSizer:Add(UI.perimeterGridSizer, 0, wx.wxALL, 5)
 	
 	UI.perimeterPanel:GetPane():SetSizer( UI.perimeterSizer )
 	UI.perimeterPanel:Layout()
@@ -827,7 +858,7 @@ function MillWizard._CreatePerimeterMillPanel(UI)
 	UI.panel_sizer:Add( UI.perimeterPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
 	UI.perimeterPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
-		MillWizard.OnPanelChanged(event)
+		MillWizard.OnPanelChanged(UI.perimeterPanel, event)
 		event:Skip()
 	end )
 
@@ -862,48 +893,52 @@ end
 function MillWizard._CreateLineMillPanel(UI)
 	UI.lineMillPanel = wx.wxCollapsiblePane( UI.scroll_panel, wx.wxID_ANY, "Line Mill", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxCP_DEFAULT_STYLE )
 	
-	UI.lineMillSizer = wx.wxGridBagSizer( 0, 0 )
-	UI.lineMillSizer:SetFlexibleDirection( wx.wxBOTH )
-	UI.lineMillSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
+	UI.lineMillSizer = wx.wxBoxSizer(wx.wxHORIZONTAL)
+	
+	UI.lineMillGridSizer = wx.wxGridBagSizer( 0, 0 )
+	UI.lineMillGridSizer:SetFlexibleDirection( wx.wxBOTH )
+	UI.lineMillGridSizer:SetNonFlexibleGrowMode( wx.wxFLEX_GROWMODE_SPECIFIED )
 	
 	UI.lineMillPosA = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "1. Teach Position A", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.lineMillSizer:Add( UI.lineMillPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosA, wx.wxGBPosition( 0, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.lineMillPosA_X = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.lineMillSizer:Add( UI.lineMillPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosA_X, wx.wxGBPosition( 1, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.lineMillPosA_Y = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.lineMillSizer:Add( UI.lineMillPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosA_Y, wx.wxGBPosition( 1, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.lineMillPosABtn = MillWizard.GetButton(UI.lineMillPanel:GetPane(), "Teach Position A")
-	UI.lineMillSizer:Add( UI.lineMillPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosABtn, wx.wxGBPosition( 2, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 	
 	UI.lineMillPosB = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "2. Go to Position B", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.lineMillSizer:Add( UI.lineMillPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosB, wx.wxGBPosition( 3, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.lineMillPosB_X = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.lineMillSizer:Add( UI.lineMillPosB_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosB_X, wx.wxGBPosition( 4, 1 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.lineMillPosB_Y = wx.wxTextCtrl( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "0.0000", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxTE_RIGHT + wx.wxTE_PROCESS_ENTER, wx.wxTextValidator(wx.wxFILTER_NUMERIC) )
-	UI.lineMillSizer:Add( UI.lineMillPosB_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosB_Y, wx.wxGBPosition( 4, 2 ), wx.wxGBSpan( 1, 1 ), wx.wxALL, 5 )
 	
 	UI.lineMillPosBBtn = MillWizard.GetButton(UI.lineMillPanel:GetPane(), "Teach Position B")
-	UI.lineMillSizer:Add( UI.lineMillPosBBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillPosBBtn, wx.wxGBPosition( 5, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.lineMillStartSpindle = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "4. Set Feedrate and turn on Spindle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.lineMillSizer:Add( UI.lineMillStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillStartSpindle, wx.wxGBPosition( 6, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.lineMillLowerZ = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "5. Lower Z Axis", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.lineMillSizer:Add( UI.lineMillLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillLowerZ, wx.wxGBPosition( 7, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.lineMillStartCycle = wx.wxStaticText( UI.lineMillPanel:GetPane(), wx.wxID_ANY, "6. Start Cycle", wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
-	UI.lineMillSizer:Add( UI.lineMillStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillStartCycle, wx.wxGBPosition( 8, 0 ), wx.wxGBSpan( 1, 2 ), wx.wxALIGN_CENTER_VERTICAL + wx.wxALL, 5 )
 	
 	UI.lineMillABtn = MillWizard.GetStartButton(UI.lineMillPanel:GetPane(), "Line Mill", "Go to A")
-	UI.lineMillSizer:Add( UI.lineMillABtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillABtn, wx.wxGBPosition( 9, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
 
 	UI.lineMillBBtn = MillWizard.GetStartButton(UI.lineMillPanel:GetPane(), "Line Mill", "Go to B")
-	UI.lineMillSizer:Add( UI.lineMillBBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	UI.lineMillGridSizer:Add( UI.lineMillBBtn, wx.wxGBPosition( 10, 1 ), wx.wxGBSpan( 1, 2 ), wx.wxALL + wx.wxEXPAND, 5 )
+	
+	UI.lineMillSizer:Add(UI.lineMillGridSizer, 0, wx.wxALL, 5)
 	
 	UI.lineMillPanel:GetPane():SetSizer( UI.lineMillSizer )
 	UI.lineMillPanel:Layout()
@@ -912,7 +947,7 @@ function MillWizard._CreateLineMillPanel(UI)
 	UI.panel_sizer:Add( UI.lineMillPanel, 0, wx.wxEXPAND  + wx.wxALL, 5 )
 
 	UI.lineMillPanel:Connect( wx.wxEVT_COMMAND_COLLPANE_CHANGED, function(event)
-		MillWizard.OnPanelChanged(event)
+		MillWizard.OnPanelChanged(UI.lineMillPanel, event)
 		event:Skip()
 	end )
 
