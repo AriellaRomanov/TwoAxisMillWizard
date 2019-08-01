@@ -5815,8 +5815,7 @@ function MillWizard.GetUnlicensedString()
 end
 
 function MillWizard.GetPCIDLicensedFor()
-	-- return ""
-	return "MCH-3191F1B0-D501-E5BA-38A3-504227A4DCC1"
+	return ""
 end
 
 MillWizard.CreateFrame()
